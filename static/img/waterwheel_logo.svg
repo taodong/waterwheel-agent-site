@@ -1,0 +1,30 @@
+<svg width="512" height="512" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="b1a" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#1e6fd9"/>
+<stop offset="100%" stop-color="#3dd8e8"/>
+</linearGradient>
+<linearGradient id="b1b" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#ff6b6b"/>
+<stop offset="100%" stop-color="#ff9966"/>
+</linearGradient>
+<linearGradient id="b1c" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#1e4d8c"/>
+<stop offset="100%" stop-color="#2b9fd9"/>
+</linearGradient>
+<clipPath id="clipA">
+<path d="M 0 0 L 360 0 L 360 360 L 0 360 Z M 60 200 Q 180 100 300 220 L 300 360 L 60 360 Z" fill-rule="evenodd"/>
+</clipPath>
+</defs>
+<g clip-path="url(#clipA)">
+<g transform="translate(180, 180) rotate(-12)">
+<g transform="rotate(0)"><ellipse cx="0" cy="-58" rx="20" ry="38" fill="url(#b1a)"/></g>
+<g transform="rotate(58)"><ellipse cx="0" cy="-52" rx="16" ry="32" fill="url(#b1c)"/></g>
+<g transform="rotate(118)"><ellipse cx="0" cy="-60" rx="18" ry="36" fill="url(#b1a)"/></g>
+<g transform="rotate(182)"><ellipse cx="0" cy="-54" rx="20" ry="34" fill="url(#b1b)"/></g>
+<g transform="rotate(245)"><ellipse cx="0" cy="-58" rx="17" ry="34" fill="url(#b1a)"/></g>
+<g transform="rotate(308)"><ellipse cx="0" cy="-50" rx="15" ry="30" fill="url(#b1c)"/></g>
+<circle cx="2" cy="-1" r="9" fill="#3dd8e8"/>
+</g>
+</g>
+</svg>

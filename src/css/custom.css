@@ -1,0 +1,231 @@
+/**
+ * Waterwheel docs theme
+ * Maps the parent brand palette into Docusaurus's Infima theme.
+ *
+ * Source palette (from _variables.scss):
+ *   primary:    #f4623a (coral/orange)
+ *   dark:       #212529 (nav, footer, dark mode bg)
+ *   success:    #038600
+ *   background: #fefefe
+ *   text muted: #757575
+ *   fonts: Saira (body) / Patua One (headings)
+ *
+ * Generate the --ifm-color-primary-* shade variants with
+ * https://docusaurus.io/docs/styling-layout#styling-your-site-with-infima
+ */
+
+/* ---------- Fonts (load via Google Fonts) ---------- */
+@import url("https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&family=Patua+One&display=swap");
+
+/* ---------- Light mode (default) ---------- */
+:root {
+  /* Brand primary — coral/orange from $primary */
+  --ifm-color-primary: #f4623a;
+  --ifm-color-primary-dark: #f24a1d;
+  --ifm-color-primary-darker: #ee4310;
+  --ifm-color-primary-darkest: #c4380d;
+  --ifm-color-primary-light: #f67a57;
+  --ifm-color-primary-lighter: #f78665;
+  --ifm-color-primary-lightest: #faa890;
+
+  /* Success — from $success */
+  --ifm-color-success: #038600;
+  --ifm-color-success-dark: #037800;
+  --ifm-color-success-darker: #037100;
+  --ifm-color-success-darkest: #025d00;
+  --ifm-color-success-light: #039400;
+  --ifm-color-success-lighter: #039b00;
+  --ifm-color-success-lightest: #04af00;
+
+  /* Backgrounds & surfaces */
+  --ifm-background-color: #fefefe;
+  --ifm-background-surface-color: #ffffff;
+
+  /* Text */
+  --ifm-font-color-base: #212529;
+  --ifm-color-emphasis-600: #757575; /* muted text */
+  --ifm-heading-color: #212529;
+
+  /* Typography */
+  --ifm-font-family-base: "Saira", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ifm-heading-font-family: "Patua One", Georgia, serif;
+  --ifm-font-weight-base: 400;
+  --ifm-heading-font-weight: 400; /* Patua One is a display face; keep regular */
+  --ifm-h1-font-size: 3rem;
+  --ifm-h2-font-size: 2.5rem;
+  --ifm-h3-font-size: 2rem;
+  --ifm-h4-font-size: 1.5rem;
+  --ifm-h5-font-size: 1.3rem;
+  --ifm-h6-font-size: 1.1rem;
+
+  /* Navbar — dark like your parent site's nav */
+  --ifm-navbar-background-color: #212529;
+  --ifm-navbar-link-color: #fcfcfc;
+  --ifm-navbar-link-hover-color: #f4623a;
+  --ifm-navbar-height: 71px;
+
+  /* Footer — also dark */
+  --ifm-footer-background-color: #212529;
+  --ifm-footer-color: #fcfcfc;
+  --ifm-footer-link-color: #adb5bd;
+  --ifm-footer-link-hover-color: #f4623a;
+  --ifm-footer-title-color: #ffffff;
+
+  /* Code blocks */
+  --ifm-code-font-size: 92%;
+  --ifm-code-background: #f8f9fa;
+  --docusaurus-highlighted-code-line-bg: rgba(244, 98, 58, 0.12);
+
+  /* Misc */
+  --ifm-link-color: #f4623a;
+  --ifm-link-hover-color: #ee4310;
+  --ifm-breadcrumb-color-active: #f4623a;
+  --ifm-tabs-color-active: #f4623a;
+  --ifm-tabs-color-active-border: #f4623a;
+}
+
+/* ---------- Dark mode ---------- */
+[data-theme="dark"] {
+  /* Lift the primary slightly for better contrast on dark backgrounds */
+  --ifm-color-primary: #f67a57;
+  --ifm-color-primary-dark: #f4623a;
+  --ifm-color-primary-darker: #f25526;
+  --ifm-color-primary-darkest: #c4380d;
+  --ifm-color-primary-light: #f88f73;
+  --ifm-color-primary-lighter: #f99a81;
+  --ifm-color-primary-lightest: #fbb8a6;
+
+  --ifm-background-color: #1a1d20;
+  --ifm-background-surface-color: #212529;
+  --ifm-font-color-base: #fcfcfc;
+  --ifm-heading-color: #ffffff;
+  --ifm-color-emphasis-600: #adb5bd;
+
+  --ifm-navbar-background-color: #212529;
+  --ifm-footer-background-color: #1a1d20;
+
+  --ifm-code-background: #2c3034;
+  --docusaurus-highlighted-code-line-bg: rgba(244, 98, 58, 0.2);
+}
+
+/* ---------- Selection (matches parent site behavior) ---------- */
+::selection {
+  background: rgba(244, 98, 58, 0.35);
+  color: inherit;
+}
+
+/* ---------- Scrollbar (subtle nod to parent site) ---------- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1);
+}
+::-webkit-scrollbar-thumb {
+  background: #adb5bd;
+  border-radius: 4px;
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #495057;
+}
+
+/* ---------- Polish ---------- */
+.navbar__brand {
+  font-family: var(--ifm-heading-font-family);
+  font-size: 1.4rem;
+}
+
+.menu__link--active {
+  font-weight: 500;
+}
+/* ============================================================
+ * Hero banner override — Waterwheel blue
+ * Append to the bottom of src/css/custom.css
+ * ============================================================ */
+
+/* The default Docusaurus homepage template wraps the hero in
+ * <header class="hero hero--primary"> ... </header>
+ * which inherits --ifm-color-primary (coral). We override just
+ * that selector so the rest of the theme keeps its primary color. */
+
+.hero--primary {
+  /* Blue gradient toned down by ~25% so the watermark reads more clearly */
+  background: linear-gradient(135deg, #567aa9 0%, #5693e3 55%, #6ee2ee 100%);
+  color: #ffffff;
+}
+
+/* Make the hero subtitle and button readable on the new background */
+.hero--primary .hero__subtitle {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* The "Docusaurus Tutorial - 5min" button uses .button--secondary
+ * on the primary hero. Tune it so it pops on blue instead of coral. */
+.hero--primary .button--secondary {
+  background-color: #ffffff;
+  color: #1e4d8c;
+  border-color: #ffffff;
+}
+
+.hero--primary .button--secondary:hover {
+  background-color: #f0f7ff;
+  color: #0d1b2a;
+  border-color: #f0f7ff;
+}
+
+/* Optional: subtle radial glow behind the hero content,
+ * echoing the social card. Remove if you want it flat. */
+.hero--primary {
+  position: relative;
+  overflow: hidden;
+}
+.hero--primary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 30% 50%,
+    rgba(61, 216, 232, 0.25) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+.hero--primary > .container {
+  position: relative; /* keep content above the glow */
+  z-index: 1;
+}
+
+/* ============================================================
+ * Hero centered watermark — large faded Waterwheel logo
+ * Append to the bottom of src/css/custom.css (after hero override)
+ * ============================================================ */
+
+.hero--primary::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(70%, 720px);
+  aspect-ratio: 1 / 1;
+  opacity: 0.28;
+  pointer-events: none;
+  z-index: 0;
+
+  /* Use the static Waterwheel logo asset for easier maintenance. */
+  background-image: url("/img/waterwheel_logo.svg");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  /* Keep the logo's original colors vivid against the blue hero gradient. */
+  filter: saturate(1.35) contrast(1.08);
+}
+
+/* Ensure hero content (title, subtitle, button) stays above the watermark.
+ * The hero override already lifts .container to z-index 1; this is a
+ * safety net for any other direct hero children. */
+.hero--primary > * {
+  position: relative;
+  z-index: 1;
+}
