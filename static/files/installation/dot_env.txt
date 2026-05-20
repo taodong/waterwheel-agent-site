@@ -1,0 +1,5 @@
+# Example .env template for Waterwheel agent
+WATERWHEEL_SYNC_VOLUME_PATH=${to_fill} # The folder `/path/to/sync` created in step 1
+API_PROVIDER=${to_fill}                # AI provider
+AI_MODEL=${to_fill}                    # AI model
+AI_API_KEY=${to_fill}                  # AI API key

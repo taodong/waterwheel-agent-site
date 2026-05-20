@@ -1,0 +1,50 @@
+volumes:
+  waterwheel-sync:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${WATERWHEEL_SYNC_VOLUME_PATH}  # Local path on your machine for syncing files
+      o: bind
+
+services:
+  waterwheel-agent:
+    image: ${WATERWHEEL_IMAGE}:${WATERWHEEL_VERSION}
+    container_name: waterwheel-test-agent
+
+    # Environment variables for your Email Service
+    environment:
+      - MAIL_HOST=${MAIL_HOST}                      # Connects to a mail server on your host machine
+      - MAIL_PORT=${MAIL_PORT}                      # Connects to a mail server on your host machine
+      - MAILHOG_URL=${MAILHOG_URL}                  # URL for MailHog web interface (e.g., http://localhost:8025)
+      - JAVA_OPTS=${JAVA_OPTS}                      # Used by internal email mcp
+      - FIREWALL_DEBUG=${FIREWALL_DEBUG}            # Enables the /agent/outputs/firewall.log
+      - DISPLAY=:99
+      - MAX_ITERATIONS=${MAX_ITERATIONS}            # Maximum chat conversation round allowed per test
+      - AI_PROVIDER=${API_PROVIDER}                 # The API provider to use (e.g., "google", "openai", "anthropic", "deepseek")
+      - AI_MODEL=${AI_MODEL}                        # The specific model to use from the API provider (e.g., "gpt-4", "gpt-3.5-turbo")
+      - AI_API_KEY=${AI_API_KEY}                    # Your API key for the chosen provider
+      - AI_MAX_TOKENS=${AI_MAX_TOKENS}              # The maximum number of tokens to use in responses
+      - TEST_RUN_TIMEOUT=${TEST_RUN_TIMEOUT}        # Maximum time (in seconds) for a test run before timing out
+      - GLOBAL_CONTEXT="/agent/instructions/global-context.json"  # Path to global context file
+      - EXTRA_INSTRUCTION="/agent/instructions/extra-instruction.md"  # Path to extra instruction file
+      - STEP_TIMEOUT_SEC=${STEP_TIMEOUT_SEC}          # Maximum time (in seconds) for each step before timing out
+      - RATE_LIMIT_RETRY=${RATE_LIMIT_RETRY}          # Maximum retry time after hitting a rate limit
+      - ENABLE_API_LOGGING=${ENABLE_API_LOGGING}            # Enable logging of API requests and responses for debugging
+      - MAX_SNAPSHOTS_HISTORY=${MAX_SNAPSHOTS_HISTORY}              # Number of past snapshots to keep for context (0 to disable)
+      - CONTEXT_COMPRESSION=${CONTEXT_COMPRESSION}              # Enable reconstructing context from chat history
+      - COMPRESSION_DEBUG=${COMPRESSION_DEBUG}                # Enable debug logging for context reconstruction process
+      - COMPRESSION_DEBUG_INCLUDE_REQUEST=${COMPRESSION_DEBUG_INCLUDE_REQUEST} # Include the original request in the debug output for context reconstruction
+      - COMPRESSION_THRESHOLD_MIN=${COMPRESSION_THRESHOLD_MIN}     # Minimum reconstruction threshold of request input token
+      - COMPRESSION_THRESHOLD_LEAP=${COMPRESSION_THRESHOLD_LEAP}   # Reconstruction threshold increase per time
+
+    volumes:
+      # Local instructions (where you put your yaml files)
+      - ${WATERWHEEL_SYNC_VOLUME_PATH}/agent/instructions:/agent/instructions:ro
+
+      # Task input/output folders
+      - ${WATERWHEEL_SYNC_VOLUME_PATH}/agent/tasks:/agent/tasks:ro
+      - ${WATERWHEEL_SYNC_VOLUME_PATH}/agent/outputs:/agent/outputs:rw
+
+    # Keep the container alive but idle
+    tty: true
+    stdin_open: true
