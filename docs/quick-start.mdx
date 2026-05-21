@@ -1,19 +1,26 @@
-# Waterwheel Installation Package
-The files in this package are used to configure Duotail Waterwheel front end test againt on a mac machine. Some of the files included are used for advanced configuration. Please refer to our document site for their usages.
+---
+sidebar_position: 1
+---
 
+# Quick Start
 
-## Prerequirement
-The agent requires the following environment
+A quick start guide to setup docker container of our `Waterwheel` agent on your local machine.
+
+## What You'll Need
  
 - Mac (Apple "M" series chip)
 - Docker Desktop
 
 ## Installation
  
+:::note
+All files mentioned in this section are bundled in [local-install.zip](/files/installation/local-install.zip). Download it and extract its contents before proceeding.
+:::
+ 
 ### 1. Create the Folder Structure
  
 
-Run `create-sync-subfolders.sh` to create the local folder structure used for Docker volume mapping.
+Run [create-sync-subfolders.sh](/files/installation/create-sync-subfolders.sh) to create the local folder structure used for Docker volume mapping.
 
 ```shell
 chmod +x create-sync-subfolders.sh
@@ -22,7 +29,7 @@ chmod +x create-sync-subfolders.sh
  
 ### 2. Configure Environment Variables
  
-Open `dot_env` and fill in the following variables.
+Open [dot_env.txt](/files/installation/dot_env.txt) and fill in the following variables.
 
 ```shell
 WATERWHEEL_SYNC_VOLUME_PATH=${to_fill} # The folder `/path/to/sync` created in step 1
@@ -33,18 +40,17 @@ AI_API_KEY=${to_fill}                  # AI API key
  
 ### 3. Place the Environment File
  
-Rename `dot_env` to `.env` and place it in the same directory as `docker-compose.yml`.
+Rename `dot_env` to `.env` and place it in the same directory as [docker-compose.yml](/files/installation/docker-compose.yml).
  
 ### 4. Copy Instruction Files
  
 Copy the following two files into `agent/instructions` under `/path/to/sync`.
 
-- `allowed-domains.yaml`
-- `email-permissions.yaml`
-
+- [allowed-domains.yaml](/files/installation/allowed-domains.yaml)
+- [email-permissions.yaml](/files/installation/email-permissions.yaml)
 ### 5. Copy Task File
  
-Copy `test-wikipedia-english.md` into `/path/to/sync/agent/tasks`.
+Copy <a href="/files/installation/test-wikipedia-english.md" download>test-wikipedia-english.md</a> into `/path/to/sync/agent/tasks`.
  
 ### 6. Deploy the Docker Container
  

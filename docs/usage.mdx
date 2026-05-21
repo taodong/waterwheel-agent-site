@@ -1,0 +1,67 @@
+---
+sidebar_position: 2
+---
+# Usage
+
+## Command
+
+The container provides a preconfigured command `run-qa` that executes all tests found under the `/agent/tasks` folder. It performs the following steps in order:
+
+1. Clear outputs from any previous run
+2. Restart the preinstalled MCP servers and reload any changed permissions
+3. Start the AI agent to run tests and write results
+
+### Dry Run Mode
+
+`run-qa` supports a `--dry-run` flag to help identify configuration issues without making any API calls.
+
+```shell
+run-qa --dry-run
+```
+
+Dry run performs the following steps in order:
+
+1. Clear outputs from any previous run
+2. Restart the preinstalled MCP servers and reload any changed permissions
+3. Start the AI agent to print the active configuration and prompts
+4. Parse all test files under `/agent/tasks` and print a test summary
+
+## Inputs
+
+The agent requires at least one test file under `/agent/tasks`. All test files must be in Markdown format and include `name` and `id` as YAML front matter properties.
+
+```markdown
+---
+name: Sample Test
+id: my-id
+---
+
+# Sample Test
+...
+```
+
+See the [Test Tasks](./test-tasks) section for full details on authoring test files.
+
+## Outputs
+
+After each run, the agent writes the following files to `/agent/outputs`.
+
+| File | Description |
+|---|---|
+| `agent.log` | AI agent execution log |
+| `api-log.json` | LLM API call records and token usage. Only written when `ENABLE_API_LOGGING` is `true` |
+| `test-results.json` | Summary of all test results for the run |
+| `test-context.json` | All context values stored at the end of the run, such as AI-generated usernames and passwords |
+| `<test-name>_log.json` | Per-test step log recording all AI-decided steps and tool calls |
+| `<test-name>_audit.json` | Per-test audit log recording the tool calls the AI actually performed |
+| `playwright.log` | Playwright MCP stdout log |
+| `playwright.err` | Playwright MCP stderr log |
+| `firewall.log` | Playwright firewall log. Only written when `FIREWALL_DEBUG` is `true` |
+| `email-mcp.log` | Email MCP stdout log |
+| `email-mcp.err` | Email MCP stderr log |
+
+## Local Testing
+If the website under test is hosted on your local machine — for example at http://localhost:8080 — two additional configuration steps are needed to allow the agent Docker container to reach it.
+
+1. Create or update `/agent/instructions/allowed-domains.yaml` to use host.docker.internal instead of localhost. For example, http://localhost:8080 becomes http://host.docker.internal:8080.
+2. Copy <a href="/files/installation/extra-instruction.md" download>extra-instruction.md</a> into /agent/instructions.

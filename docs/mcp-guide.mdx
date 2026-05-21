@@ -1,0 +1,124 @@
+---
+title: MCP Guide
+description: Overview of the Playwright MCP and Email MCP preloaded in the Waterwheel agent image.
+sidebar_position: 4
+---
+
+# MCP Guide
+
+The agent image ships with two preloaded MCPs: **Playwright MCP** and **Email MCP**. Both are installed as system services managed by `supervisor` and are not running by default. The `run-qa` command starts both MCPs at the beginning of each test run so that any configuration changes are picked up, and terminates them when the run ends.
+
+---
+
+## Playwright MCP
+
+Provides tools for browser automation.
+
+| | |
+|---|---|
+| **GitHub** | https://github.com/microsoft/playwright-mcp |
+| **Installed version** | v0.0.74 |
+| **File directory** | `/services/playwright` |
+| **Preinstalled browser** | Chromium |
+| **Default config file** | `/services/playwright/playwright-mcp-config.json` |
+
+```json title="playwright-mcp-config.json (default)"
+{
+  "browser": {
+    "browserName": "chromium",
+    "launchOptions": {
+      "args": [
+        "--disable-gpu",
+        "--disable-setuid-sandbox"
+      ]
+    },
+    "snapshot": {
+      "mode": "none"
+    }
+  }
+}
+```
+
+### URL Permissions
+
+When Playwright MCP starts, it reads `allowed-domains.yaml` to determine which URLs the agent is permitted to access. Any attempt to visit a URL not on the list returns an error immediately.
+
+`allowed-domains.yaml` can be placed either under `/services/playwright` or `/agent/instructions/`. The latter is recommended as it is mounted from the host and survives container restarts.
+
+The file contains a single array property `allowed` listing all permitted origins.
+
+```yaml title="allowed-domains.yaml (example)"
+allowed:
+  # Wikipedia — root domain and English subdomain listed separately
+  - https://www.wikipedia.org
+  - https://en.wikipedia.org
+
+  # Local app on a specific port
+  - http://host.docker.internal:8080
+
+  # Staging subdomains
+  - https://app.staging.example.com
+  - https://api.staging.example.com
+```
+
+:::tip
+When testing a website running on your local machine, replace `localhost` with `host.docker.internal`. For example, `http://localhost:8080` becomes `http://host.docker.internal:8080`.
+:::
+
+#### Format Rules
+
+| Format | Example | What It Matches | What It Does NOT Match |
+|---|---|---|---|
+| Full origin | `https://example.com` | Only `https://example.com` on port 443 | `http://example.com`, `https://sub.example.com`, `https://example.com:8080` |
+| Full origin with port | `https://example.com:8080` | Only `https://example.com:8080` | Any other port on the same host |
+| Wildcard subdomain | `https://*.example.com` | Any subdomain of `example.com` over HTTPS | `https://example.com` (root domain itself) |
+
+#### Behaviour Rules
+
+| Rule | Detail |
+|---|---|
+| Subdomains are not included automatically | `https://wikipedia.org` does NOT cover `https://en.wikipedia.org`. Each subdomain must be listed separately. |
+| Protocol is exact | `https://example.com` and `http://example.com` are different origins and must be listed separately. |
+| Port is exact | `https://example.com` does not cover `https://example.com:8080`. They must be listed as separate entries. |
+| Path is ignored | `https://example.com/app` and `https://example.com/admin` are treated as the same origin. Access cannot be restricted by path. |
+| Redirects are not affected | If an allowed origin redirects to a blocked one, the redirect is still followed. This is not a security boundary. |
+
+### Environment Variables
+
+| Variable | Description | Default |
+|---|---|---|
+| `ENABLE_PLAYWRIGHT_MCP` | Enable Playwright MCP | `true` |
+| `FIREWALL_DEBUG` | Enable firewall debug logs | `false` |
+
+:::warning
+The agent will not start if Playwright MCP is disabled.
+:::
+
+---
+
+## Email MCP
+
+Provides simple email utilities for sending and receiving emails during tests. This MCP can be ignored if no email operations are required.
+
+| | |
+|---|---|
+| **GitHub** | https://github.com/taodong/duotail-test-sender |
+| **Installed version** | v0.3.2 |
+| **File directory** | `/services/email-mcp` |
+| **Default config file** | `/services/email-mcp/email-mcp.properties` |
+
+For full configuration and usage details, refer to the [Email MCP README](https://github.com/taodong/duotail-test-sender/blob/main/README.md).
+
+### Environment Variables
+
+| Variable | Description | Default |
+|---|---|---|
+| `ENABLE_EMAIL_MCP` | Enable Email MCP | `true` |
+| `MAIL_HOST` | SMTP host for sending email | `localhost` |
+| `MAIL_PORT` | SMTP port for sending email | `25` |
+| `MAILHOG_URL` | MailHog URL for checking received emails | `http://localhost:8025` |
+| `EMAIL_PERM_FILE` | Path to the email permissions file | `/agent/instructions/email-permissions.yaml` |
+
+:::warning
+If `ENABLE_EMAIL_MCP` is set to `false`, also remove the `email` entry from `/agent/config/mcp-config.json` so the agent does not attempt to connect to a server that is not running.
+:::
