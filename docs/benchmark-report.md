@@ -1,6 +1,6 @@
 ---
 title: AI Bechmarks
-description: Benchmark Report: Claude Sonnet 4.6 vs DeepSeek v4 Pro
+description: Benchmark Report - Claude Sonnet 4.6 vs DeepSeek v4 Pro
 sidebar_position: 6
 ---
 
@@ -37,9 +37,9 @@ AI_MAX_TOKENS=8192
 * Deekseek v4 pro api tokens are currently offered at a 90% discount.
 
 ### Verdict
-Claude Sonnet 4.6 is the stronger choice for speed and reliability — it completed the full suite faster, maintained lower output verbosity, and showed more consistent behaviour across longer tests. Its cache warms up more gradually. 
+`Claude Sonnet 4.6` is the stronger choice for speed and reliability. it completed the full suite faster, maintained lower output verbosity, and showed more consistent behaviour across longer tests. Its cache warmed up more gradually. 
 
-DeepSeek V4 Pro's main strength is cost efficiency: it achieves a higher cache hit rate and uses fewer API calls in longer tests due to less granular verification. Its weaknesses are higher per-call latency, more frequent instruction violations, and slightly higher output verbosity. 
+`DeepSeek V4 Pro`'s main strength is cost efficiency. it achieved a higher cache hit rate quickly and used fewer API calls in longer tests due to less granular verification. Its weaknesses are higher per-call latency, more frequent instruction violations, and slightly higher output verbosity. 
 
 ### Recommendations
 Use DeepSeek V4 pro for development testing or high-volume runs. Use Claude Sonnet 4.6 for regression testing or websites requiring strict compliance.
