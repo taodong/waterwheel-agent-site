@@ -1,6 +1,7 @@
 ---
 title: Agent Permissions
 description: How Waterwheel agent access is constrained across file system, MCP, URL, email, and scripting layers.
+sidebar_position: 3
 ---
 
 # Agent Permissions
