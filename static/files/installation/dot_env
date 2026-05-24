@@ -1,5 +1,5 @@
 WATERWHEEL_IMAGE=taojdcn/duotail-waterwheel
-WATERWHEEL_VERSION=latest-mac
+WATERWHEEL_VERSION=1.0.0-mac
 
 # Email MCP Configuration. Can be ignored if not using email features.
 MAIL_HOST=localhost
