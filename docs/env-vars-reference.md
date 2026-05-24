@@ -31,7 +31,7 @@ Variable | Description | Default
 | `TEST_RUN_TIMEOUT` | Maximum total duration (in seconds) for the entire test run before it is stopped with status `timeout` | `7200` (2 hours) |
 | `STEP_TIMEOUT_SEC` | Maximum duration (in seconds) the agent may idle without receiving an LLM response per step before the task is marked failed | `120` (2 minutes) |
 | `MAX_SNAPSHOTS_HISTORY` | Maximum number of recent `browser_snapshot` tool results to keep in LLM message history; negative values are treated as `2`; `0` blocks direct `browser_snapshot` calls at runtime (use `take_verification_snapshot` instead) | `2` |
-| `CONTEXT_COMPRESSION` | Enables message compression flow (planning + history compaction after `complete_verification`); evaluates to `true` only when set to `true` (case-insensitive) | `false` |
+| `CONTEXT_COMPRESSION` | Enables message compression flow; evaluates to `true` only when set to `true` (case-insensitive) | `false` |
 | `COMPRESSION_DEBUG` | Emits one compression debug log right before the next LLM call after a compression; evaluates to `true` only when set to `true` (case-insensitive) | `false` |
 | `COMPRESSION_DEBUG_INCLUDE_REQUEST` | When `COMPRESSION_DEBUG=true`, logs the compressed messages (summary and continue prompt) instead of the compact summary mode | `false` |
 | `COMPRESSION_THRESHOLD_MIN` | Initial input token threshold for compression eligibility; non-positive values fall back to `12500`. Requires `CONTEXT_COMPRESSION=true`. | `12500` |
