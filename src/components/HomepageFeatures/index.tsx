@@ -9,34 +9,56 @@ type FeatureItem = {
   description: ReactNode;
 };
 
-const FeatureList: FeatureItem[] = [
+export const FeatureList: FeatureItem[] = [
+  {
+    title: 'Plain Text Testing',
+    Svg: require('@site/static/img/feature_plain_text.svg').default,
+    description: (
+      <>
+        All test tasks are plain Markdown files — no scripting required. Write
+        automation in plain language. <a href="/docs/test-task-manual">Manage Test Tasks</a>
+      </>
+    ),
+  },
+  {
+    title: 'Minimal Token Usage',
+    Svg: require('@site/static/img/feature_minimize_tokens.svg').default,
+    description: (
+      <>
+        Handles complex scenarios and large chained test suites without hitting
+        token limits. Real-world tests average as little as $0.02 per test case.{' '}
+        <a href="/docs/benchmark-report">AI Benchmark</a>
+      </>
+    ),
+  },
+  {
+    title: 'Fully Harnessed',
+    Svg: require('@site/static/img/feature_harnessed.svg').default,
+    description: (
+      <>
+        The agent is isolated through multiple layers of permission controls,
+        from the container down to individual tools.{' '}
+        <a href="/docs/permissions">Agent Permissions</a>
+      </>
+    ),
+  },
+  {
+    title: 'AI Agnostic',
+    Svg: require('@site/static/img/feature_provider_agnostic.svg').default,
+    description: (
+      <>
+        Supports all major AI providers: Claude, OpenAI, Google Gemini, and
+        DeepSeek.
+      </>
+    ),
+  },
   {
     title: 'Easy to Use',
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
+    Svg: require('@site/static/img/feature_easy_to_use.svg').default,
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
-      </>
-    ),
-  },
-  {
-    title: 'Focus on What Matters',
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
-    description: (
-      <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
-      </>
-    ),
-  },
-  {
-    title: 'Powered by React',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
-    description: (
-      <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        Delivered as a Docker image. Configure once and integrate seamlessly
+        into your development, CI/CD, or QA pipeline.
       </>
     ),
   },
@@ -60,7 +82,7 @@ export default function HomepageFeatures(): ReactNode {
   return (
     <section className={styles.features}>
       <div className="container">
-        <div className="row">
+        <div className={clsx('row', styles.featuresRow)}>
           {FeatureList.map((props, idx) => (
             <Feature key={idx} {...props} />
           ))}

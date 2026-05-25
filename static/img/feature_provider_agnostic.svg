@@ -1,0 +1,39 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="blue4" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#1e6fd9"/>
+<stop offset="100%" stop-color="#3dd8e8"/>
+</linearGradient>
+</defs>
+<!-- three provider boxes on top, one hub at bottom -->
+<g stroke="#9fc9e8" stroke-width="3" fill="none">
+<path d="M 52 64 Q 52 116 100 122"/>
+<path d="M 100 60 L 100 122"/>
+<path d="M 148 64 Q 148 116 100 122"/>
+</g>
+<!-- provider chips -->
+<g>
+<rect x="34" y="40" width="36" height="28" rx="6" fill="#eef6fc" stroke="#1e6fd9" stroke-width="3"/>
+<circle cx="52" cy="54" r="6" fill="#3dd8e8"/>
+</g>
+<g>
+<rect x="82" y="36" width="36" height="28" rx="6" fill="#eef6fc" stroke="#1e6fd9" stroke-width="3"/>
+<rect x="94" y="48" width="12" height="5" rx="2.5" fill="#3dd8e8"/>
+<rect x="94" y="46" width="12" height="2" rx="1" fill="#3dd8e8"/>
+</g>
+<g>
+<rect x="130" y="40" width="36" height="28" rx="6" fill="#eef6fc" stroke="#1e6fd9" stroke-width="3"/>
+<path d="M 142 58 L 148 48 L 154 58 Z" fill="#3dd8e8"/>
+</g>
+<!-- central hub (Waterwheel) -->
+<circle cx="100" cy="140" r="30" fill="url(#blue4)"/>
+<!-- small whorl hint inside hub -->
+<g transform="translate(100,140)" fill="#ffffff" opacity="0.9">
+<ellipse cx="0" cy="-13" rx="4" ry="8"/>
+<g transform="rotate(72)"><ellipse cx="0" cy="-13" rx="4" ry="8"/></g>
+<g transform="rotate(144)"><ellipse cx="0" cy="-13" rx="4" ry="8"/></g>
+<g transform="rotate(216)"><ellipse cx="0" cy="-13" rx="4" ry="8"/></g>
+<g transform="rotate(288)"><ellipse cx="0" cy="-13" rx="4" ry="8"/></g>
+<circle cx="0" cy="0" r="3" fill="#f4623a"/>
+</g>
+</svg>

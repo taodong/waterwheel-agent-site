@@ -1,0 +1,21 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="blue" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#1e6fd9"/>
+<stop offset="100%" stop-color="#3dd8e8"/>
+</linearGradient>
+</defs>
+<!-- Document -->
+<rect x="52" y="34" width="84" height="108" rx="8" fill="#eef6fc" stroke="#1e6fd9" stroke-width="3"/>
+<!-- folded corner -->
+<path d="M 118 34 L 136 52 L 118 52 Z" fill="#cfe6f7"/>
+<!-- text lines (plain text) -->
+<rect x="64" y="54" width="44" height="5" rx="2.5" fill="#3dd8e8"/>
+<rect x="64" y="68" width="58" height="5" rx="2.5" fill="#9fc9e8"/>
+<rect x="64" y="82" width="50" height="5" rx="2.5" fill="#9fc9e8"/>
+<rect x="64" y="96" width="58" height="5" rx="2.5" fill="#9fc9e8"/>
+<rect x="64" y="110" width="38" height="5" rx="2.5" fill="#9fc9e8"/>
+<!-- check badge -->
+<circle cx="132" cy="128" r="26" fill="url(#blue)"/>
+<path d="M 121 128 L 129 136 L 144 120" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

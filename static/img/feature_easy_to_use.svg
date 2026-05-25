@@ -1,0 +1,24 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="blue5" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#1e6fd9"/>
+<stop offset="100%" stop-color="#3dd8e8"/>
+</linearGradient>
+</defs>
+<!-- big friendly toggle switched on -->
+<rect x="40" y="84" width="120" height="56" rx="28" fill="url(#blue5)"/>
+<circle cx="132" cy="112" r="22" fill="#ffffff"/>
+<!-- check inside the knob -->
+<path d="M 124 112 L 130 118 L 141 105" fill="none" stroke="#1e6fd9" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<!-- sparkle accents to convey effortlessness -->
+<g fill="#f4623a">
+<path d="M 56 54 l 4 10 l 10 4 l -10 4 l -4 10 l -4 -10 l -10 -4 l 10 -4 z"/>
+</g>
+<g fill="#3dd8e8">
+<path d="M 150 50 l 2.5 6 l 6 2.5 l -6 2.5 l -2.5 6 l -2.5 -6 l -6 -2.5 l 6 -2.5 z"/>
+</g>
+<g fill="#9fc9e8">
+<circle cx="40" cy="150" r="4"/>
+<circle cx="160" cy="158" r="5"/>
+</g>
+</svg>

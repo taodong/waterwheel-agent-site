@@ -1,0 +1,33 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="blue3" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#1e6fd9"/>
+<stop offset="100%" stop-color="#3dd8e8"/>
+</linearGradient>
+</defs>
+<!-- central core -->
+<circle cx="100" cy="100" r="26" fill="url(#blue3)"/>
+<circle cx="100" cy="100" r="11" fill="#ffffff" opacity="0.85"/>
+<!-- harness spokes connecting to controlled nodes -->
+<g stroke="#1e6fd9" stroke-width="4" stroke-linecap="round">
+<line x1="100" y1="74" x2="100" y2="44"/>
+<line x1="123" y1="87" x2="149" y2="64"/>
+<line x1="126" y1="110" x2="156" y2="119"/>
+<line x1="112" y1="123" x2="128" y2="151"/>
+<line x1="88" y1="123" x2="72" y2="151"/>
+<line x1="74" y1="110" x2="44" y2="119"/>
+<line x1="77" y1="87" x2="51" y2="64"/>
+</g>
+<!-- controlled node endpoints -->
+<g fill="#1e4d8c">
+<circle cx="100" cy="40" r="9"/>
+<circle cx="153" cy="60" r="9"/>
+<circle cx="161" cy="121" r="9"/>
+<circle cx="131" cy="156" r="9"/>
+<circle cx="69" cy="156" r="9"/>
+<circle cx="39" cy="121" r="9"/>
+<circle cx="47" cy="60" r="9"/>
+</g>
+<!-- one accent node -->
+<circle cx="100" cy="40" r="9" fill="#f4623a"/>
+</svg>
