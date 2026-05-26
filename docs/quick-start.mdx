@@ -54,7 +54,12 @@ Copy the following three files into `agent/instructions` under `/path/to/sync`.
 ### 5. Copy Task File
  
 Copy <a href="/files/installation/test-wikipedia-english.md" download>test-wikipedia-english.md</a> into `/path/to/sync/agent/tasks`.
- 
+
+:::note
+You can also try complicated chained test cases by copying <a href="/files/installation/1_test_wikipedia_search.md" download>1_test_wikipedia_search.md</a> and <a href="/files/installation/2_test_wikipedia_navigate.md" download>2_test_wikipedia_navigate.md</a> into `/path/to/sync/agent/tasks`.
+However, the API cost may be above $1 per test without configuration tuning.
+:::
+
 ### 6. Deploy the Docker Container
  
 From the same directory as `docker-compose.yml`, run:

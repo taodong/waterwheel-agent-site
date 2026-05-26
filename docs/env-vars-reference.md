@@ -1,3 +1,8 @@
+---
+title: Docker Image Envrionment Variable Reference
+description: Docker Image Envrionment Variable Reference
+sidebar_position: 10
+---
 # Docker Image Envrionment Variable Reference
 
 ## MCP Variables
