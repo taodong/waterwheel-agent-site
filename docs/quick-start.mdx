@@ -10,11 +10,12 @@ A quick start guide to setup docker container of our `Waterwheel` agent on your 
  
 - Mac (Apple "M" series chip)
 - Docker Desktop
+- Your own LLM API key 
 
 ## Installation
  
 :::note
-All files mentioned in this section are bundled in [local-install.zip](/files/installation/local-install.zip). Download it and extract its contents before proceeding.
+All files mentioned in this section are bundled in [mac-local-install.zip](/files/installation/mac-local-install.zip). Download it and extract its contents before proceeding.
 :::
  
 ### 1. Create the Folder Structure
@@ -44,10 +45,12 @@ Rename `dot_env` to `.env` and place it in the same directory as [docker-compose
  
 ### 4. Copy Instruction Files
  
-Copy the following two files into `agent/instructions` under `/path/to/sync`.
+Copy the following three files into `agent/instructions` under `/path/to/sync`.
 
 - [allowed-domains.yaml](/files/installation/allowed-domains.yaml)
 - [email-permissions.yaml](/files/installation/email-permissions.yaml)
+- [global-context.json](/files/installation/global-context.json)
+
 ### 5. Copy Task File
  
 Copy <a href="/files/installation/test-wikipedia-english.md" download>test-wikipedia-english.md</a> into `/path/to/sync/agent/tasks`.

@@ -1,6 +1,21 @@
 # Waterwheel Installation Package
-The files in this package are used to configure Duotail Waterwheel front end test againt on a mac machine. Some of the files included are used for advanced configuration. Please refer to our document site for their usages.
+The files in this package are used to configure Duotail Waterwheel front end test againt on a mac machine. Some of the files included are used for advanced configuration. Please refer to our document site https://waterwheel.duotail.com for detailed information.
 
+**Files Included**
+
+| File                         | Usage                                               |
+|------------------------------|-----------------------------------------------------|
+| create-sync-subfolders.sh    | Shell script to create local file structure         |
+| docker-compose.yml           | Docker compose file for the agent                   |
+| dot_env                      | Renamed .env file used by Docker compose            |
+| extra-instruction.md         | Extra instructions needed for localhost web testing |
+| system-prompt-cn.md          | Chinese version of system prompt used for DeepSeek  |
+| email-permissions.yaml       | Sample Email permissions                            |
+| allowed-domains.yaml         | Domain permission file for sample test cases        |
+| global-context.json          | Sample global context file                          |
+| test-wikipedia-english.md    | Test to verify installation                         |
+| 1_test_wikipedia_search.md   | Sample test case 1 for token tuning                 |
+| 2_test_wikipedia_navigate.md | Sample test case 2 for token tuning                 |
 
 ## Prerequirement
 The agent requires the following environment
@@ -37,14 +52,19 @@ Rename `dot_env` to `.env` and place it in the same directory as `docker-compose
  
 ### 4. Copy Instruction Files
  
-Copy the following two files into `agent/instructions` under `/path/to/sync`.
+Copy the following three files into `agent/instructions` under `/path/to/sync`.
 
 - `allowed-domains.yaml`
 - `email-permissions.yaml`
+- `global-context.json`
 
 ### 5. Copy Task File
  
-Copy `test-wikipedia-english.md` into `/path/to/sync/agent/tasks`.
+Copy sample test into `/path/to/sync/agent/tasks`.
+
+```shell
+cp test-wikipedia-english.md /path/to/sync/agent/tasks
+```
  
 ### 6. Deploy the Docker Container
  

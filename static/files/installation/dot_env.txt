@@ -1,5 +1,32 @@
-# Example .env template for Waterwheel agent
-WATERWHEEL_SYNC_VOLUME_PATH=${to_fill} # The folder `/path/to/sync` created in step 1
-API_PROVIDER=${to_fill}                # AI provider
-AI_MODEL=${to_fill}                    # AI model
-AI_API_KEY=${to_fill}                  # AI API key
+WATERWHEEL_IMAGE=taojdcn/duotail-waterwheel
+WATERWHEEL_VERSION=1.0.0-mac
+
+# Email MCP Configuration. Can be ignored if not using email features.
+MAIL_HOST=localhost
+MAIL_PORT=8025
+MAILHOG_URL=http://localhost:8025
+JAVA_OPTS=-Xmx512m -Xms256m
+
+# Playwright MCP Configuration
+FIREWALL_DEBUG=false
+
+# Agent Configuration
+WATERWHEEL_SYNC_VOLUME_PATH=${to_fill}
+
+API_PROVIDER=${to_fill}
+AI_MODEL=${to_fill}
+AI_API_KEY=${to_fill} 
+AI_MAX_TOKENS=8192
+
+TEST_RUN_TIMEOUT=7200
+STEP_TIMEOUT_SEC=120
+RATE_LIMIT_RETRY=2
+
+ENABLE_API_LOGGING=false
+MAX_SNAPSHOTS_HISTORY=2
+CONTEXT_COMPRESSION=false
+COMPRESSION_DEBUG=false
+COMPRESSION_DEBUG_INCLUDE_REQUEST=false
+MAX_ITERATIONS=300
+COMPRESSION_THRESHOLD_MIN=12500
+COMPRESSION_THRESHOLD_LEAP=5000
