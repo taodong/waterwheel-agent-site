@@ -10,7 +10,6 @@ node: 1
 Search for "Giant Pacific Octopus" on Wikipedia and verify the article loads with the correct title and opening facts.
 
 ## Success Condition
-- [] Wikipedia is reachable.
 - [] The search returns a result for "Giant Pacific Octopus".
 - [] The article page title is "Giant Pacific octopus".
 - [] The article's opening paragraph mentions it is the largest octopus species.

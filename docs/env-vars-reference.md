@@ -40,4 +40,4 @@ Variable | Description | Default
 | `RATE_LIMIT_RETRY` | Maximum number of allowed rate-limit retries per task; negative values allow unlimited retries | `1` |
 | `MAX_ITERATIONS` | Maximum number of LLM call iterations per task before the loop is forcibly stopped | `300` |
 | `ENABLE_API_LOGGING` | Enables LLM API request/response logging to `/agent/outputs/api-log.json`; evaluates to `true` only when set to `true` (case-insensitive) | `false` |
-| `MAXIMUM_RESTRICTED_TOOL_USAGE` | Maximum number of cumulative calls to restricted tools (see `restricted-tools` below) allowed between verified progress checkpoints (a successful `complete_verification` or `update_context_map`). When the count exceeds this limit the task fails immediately. `0` or negative values disable the guard. The counter resets to `0` at the start of each task. | `3` |
+| `MAXIMUM_RESTRICTED_TOOL_USAGE` | Maximum number of cumulative calls to restricted tools allowed between verified progress checkpoints. When the count exceeds this limit the task fails immediately. `0` or negative values disable the guard. The counter resets to `0` at the start of each task. | `3` |
