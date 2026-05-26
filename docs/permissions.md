@@ -49,7 +49,7 @@ allowed:
   - https://en.wikipedia.org
 ```
 
-See the [Playwright MCP](./playwright-mcp) section for full configuration details.
+See the [Playwright MCP](./mcp-guide#playwright-mcp) section for full configuration details.
 
 ### Email Access
 
@@ -82,5 +82,3 @@ The restricted tool list is defined in `/agent/config/agent-config.json`. The ma
   "restricted-tools": ["browser_run_code_unsafe"]
 }
 ```
-
-See the [Advanced Usage](./advanced-usage) section for full configuration details.

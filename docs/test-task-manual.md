@@ -7,6 +7,9 @@ sidebar_position: 4
 # Manage Test Tasks
 
 All test tasks scheduled to run by the agent must be plain-text Markdown (`.md`) files placed under the `/agent/tasks` directory.
+The agent runs all tests in sequence following their natural dependencies. The following example demonstrates two chained tests:
+- <a href="/files/installation/1_test_wikipedia_search.md" download>1_test_wikipedia_search.md</a>
+- <a href="/files/installation/2_test_wikipedia_navigate.md" download>2_test_wikipedia_navigate.md</a>
 
 ## File Location and Structure
 

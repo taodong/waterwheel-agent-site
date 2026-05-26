@@ -26,7 +26,7 @@ export const FeatureList: FeatureItem[] = [
     description: (
       <>
         Handles complex scenarios and large chained test suites without hitting
-        token limits. Real-world tests average as little as $0.02 per test case.{' '}
+        token limits. Real-world tests average as little as $0.15 per test case.{' '}
         <a href="/docs/benchmark-report">AI Benchmark</a>
       </>
     ),
@@ -48,7 +48,8 @@ export const FeatureList: FeatureItem[] = [
     description: (
       <>
         Supports all major AI providers: Claude, OpenAI, Google Gemini, and
-        DeepSeek.
+        DeepSeek.{' '}
+        <a href="/docs/provider-guide">Provider Guide</a>
       </>
     ),
   },
@@ -58,7 +59,8 @@ export const FeatureList: FeatureItem[] = [
     description: (
       <>
         Delivered as a Docker image. Configure once and integrate seamlessly
-        into your development, CI/CD, or QA pipeline.
+        into your development, CI/CD, or QA pipeline. {' '}
+        <a href="https://hub.docker.com/r/taojdcn/duotail-waterwheel">Waterwheel Docker Page</a>
       </>
     ),
   },
