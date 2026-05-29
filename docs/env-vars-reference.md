@@ -26,7 +26,7 @@ Variable | Description | Default
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `AI_PROVIDER` | AI provider name: `anthropic`, `openai`, `google` / `google-gemini` / `gemini`, `deepseek` | `anthropic` |
+| `AI_PROVIDER` | AI provider name. Allowed values are `anthropic`, `openai`, `gemini` or `deepseek` | `anthropic` |
 | `AI_MODEL` | AI model name | — |
 | `AI_API_KEY` | AI API key | — |
 | `AI_MAX_TOKENS` | Max tokens for a single response | `8192` |

@@ -6,13 +6,15 @@ sidebar_position: 8
 
 # Provider Configuration Guide
 
-The following configurations are recommended based on our internal use cases. The goal is to achieve minimum API cost and stable performance across a regression test suite of more than 10 test cases.
+The following configurations are recommended based on our internal use cases. The goal is to minimize API cost while maintaining stable performance across a regression test suite of more than 10 test cases.
 
 ## Claude
+Claude works well with our default prompts. The model we tested is `claude-sonnet-4-6`, so we recommend it as the minimum model.
 
-**Minimum recommended model:** `claude-sonnet-4-6`
-
+### Recommended Configuration
 ```shell
+API_PROVIDER=anthropic
+AI_MODEL=claude-sonnet-4-6
 AI_MAX_TOKENS=8192
 MAX_SNAPSHOTS_HISTORY=0
 CONTEXT_COMPRESSION=true
@@ -26,9 +28,12 @@ MAXIMUM_RESTRICTED_TOOL_USAGE=3
 
 ## DeepSeek
 
-**Minimum recommended model:** `deepseek-v4-pro`
+DeepSeek is the most cost-effective option for this agent. We tested both `deepseek-v4-flash` and `deepseek-v4-pro`. `deepseek-v4-flash` is not capable enough to pass our tests, so `deepseek-v4-pro` is the minimum model we recommend.
 
+### Recommended Configuration
 ```shell
+API_PROVIDER=deepseek
+AI_MODEL=deepseek-v4-pro
 AI_MAX_TOKENS=8192
 MAX_SNAPSHOTS_HISTORY=0
 CONTEXT_COMPRESSION=true
@@ -40,14 +45,57 @@ MAX_ITERATIONS=100
 MAXIMUM_RESTRICTED_TOOL_USAGE=3
 ```
 
-:::important
-DeepSeek performs better with a Chinese system prompt. Rename the provided `system-prompt-cn.md` to `system.prompt.md` and place it under `/agent/config`, replacing the existing English prompt file of the same name.
-:::
+### Observation
+1. DeepSeek occasionally has issues following our default system prompt, which results in higher token consumption. We mitigate this by using a Chinese version included in the installation package.
+   You can rename the provided `system-prompt-cn.md` to `system.prompt.md` and place it under `/agent/config`, replacing the existing English prompt file.
 
 ## OpenAI
+We briefly tested both `gpt-5.4` and `gpt-5.5`. We did not spend enough time tuning prompts to make them work reliably, but our expectation is that `gpt-5.4` should work with the right prompts.
 
-Supported in code but not tested in a real environment. Please reach out on our [Discord channel](https://discord.gg/6kDkXr5Teh) if you need help.
+### Recommended Configuration
+```shell
+API_PROVIDER=openai
+AI_MODEL=gpt-5.4
+AI_MAX_TOKENS=8192
+MAX_SNAPSHOTS_HISTORY=0
+CONTEXT_COMPRESSION=true
+COMPRESSION_THRESHOLD_MIN=12500
+COMPRESSION_THRESHOLD_LEAP=5000
+LARGE_CONTENT_THRESHOLD=10000
+RATE_LIMIT_RETRY=2
+MAX_ITERATIONS=100
+MAXIMUM_RESTRICTED_TOOL_USAGE=3
+```
+### Observation
+1. GPT models have difficulty distinguishing a `link` from its `label` when a click is needed. Possible remedies are:
+   - Add an extra instruction to regulate this behavior.
+   - Update any `click` instructions in the default system prompt to eliminate potentially misleading prompts introduced by the tool.
+   - Increase the `MAX_SNAPSHOTS_HISTORY` value and allow retries.
 
 ## Gemini
 
-Supported in code but not tested in a real environment. Please reach out on our [Discord channel](https://discord.gg/6kDkXr5Teh) if you need help.
+Because Gemini does not have a universal API specification across models, the current agent version supports only `gemini-2.5-pro` and `gemini-2.5-flash`.
+Both models work fine according to our preliminary tests. The following table shows how the agent handles the thinking budget for these two models:
+
+| Model | Thinking | Notes |
+|-------|----------|-------|
+| `gemini-2.5-flash` | Disabled (`thinkingBudget: 0`) | Enforced by our agent |
+| `gemini-2.5-pro` | Always on | The provider default value is always used; no override is sent |
+
+### Recommended Configuration
+```shell
+API_PROVIDER=gemini
+AI_MODEL=gemini-2.5-flash
+AI_MAX_TOKENS=8192
+MAX_SNAPSHOTS_HISTORY=0
+CONTEXT_COMPRESSION=true
+COMPRESSION_THRESHOLD_MIN=12500
+COMPRESSION_THRESHOLD_LEAP=5000
+LARGE_CONTENT_THRESHOLD=10000
+RATE_LIMIT_RETRY=2
+MAX_ITERATIONS=100
+MAXIMUM_RESTRICTED_TOOL_USAGE=3
+```
+
+### Observation
+1. Possibly due to our low spend tier, our tests often fail with a 503 error (`This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.`). Our agent does not have a recovery mechanism for this situation. Please be cautious if you plan to run a large test suite.

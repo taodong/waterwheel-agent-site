@@ -85,3 +85,7 @@ docker compose exec waterwheel-agent run-qa
 ```
  
 Once the command completes, check the results at `/path/to/sync/agent/outputs/test-results.json`.
+
+:::warning
+OpenAI, even with its latest `gpt-5.5` model, has difficulty differentiating between a link and its label. You may experience test failure if OpenAI is your configured AI provider. Please view our [Provider Guide](./provider-guide) for details.
+:::
