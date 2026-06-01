@@ -26,7 +26,8 @@ export const FeatureList: FeatureItem[] = [
     description: (
       <>
         Handles complex scenarios and large chained test suites without hitting
-        token limits. Real-world tests average as little as $0.15 per test case.{' '}
+        token limits. Efficient token handling reduces real-world test costs 
+        to pennies per test case.{' '}
         <a href="/docs/benchmark-report">AI Benchmark</a>
       </>
     ),
