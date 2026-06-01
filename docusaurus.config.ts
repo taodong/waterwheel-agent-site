@@ -6,7 +6,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'Waterwheel',
-  tagline: 'Front-end testing AI agent',
+  tagline: 'AI browser test agent — write tests in plain English, skip the QA bottleneck',
   favicon: 'img/waterwheel_favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
