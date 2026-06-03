@@ -254,7 +254,31 @@ The agent supports a global context file configured by the `GLOBAL_CONTEXT` envi
 Use uppercase variable names in `global_context.json` to avoid naming conflicts with runtime context variables.
 :::
 
-### B. Runtime Context — values discovered during a test and reused by later tests
+### B. Preset context (default values seeded before any task runs)
+
+- The agent supports a preset context file configured by `PRESET_CONTEXT`.
+- Default file path is `./instructions/preset-context.json`.
+- If the file exists, key-value pairs are stored in `context-manager` before the first task runs.
+- Unlike global context, preset values are not injected into the system prompt — they live in the context store and are read or overwritten by the agent via the `context-manager` tool.
+- Test can override preset values for the same key.
+
+Example `preset-context.json`:
+
+```json
+{
+  "admin_username": "qa_user",
+  "admin_password": "s3cret",
+  "feature_new_checkout": true
+}
+```
+
+Values support any JSON type: string, number, boolean, object, array.
+
+:::tip
+This is useful to make tests reusable across different configurations. For example, you can test a single bug by injecting necessary context values without running all its dependent tests.
+:::
+
+### C. Runtime Context — values discovered during a test and reused by later tests
 
 Runtime sharing uses the local `context-manager` tool. Values remain available to all subsequent tests in the same run until end-of-run cleanup.
 
@@ -278,7 +302,7 @@ To read a value, reference it with a `context.` prefix. For example:
 Runtime context variable names are case-sensitive.
 :::
 
-### C. Dependency with data passing
+### D. Dependency with data passing
 
 If test B requires data produced by test A, define the dependency explicitly using `node` and `required`. This ensures the producer test always runs before the consumer, eliminating race conditions and missing-data errors. Even with dependency ordering in place, always validate required context values at the start of the consumer test.
 

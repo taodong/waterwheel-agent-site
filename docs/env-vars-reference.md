@@ -33,6 +33,7 @@ Variable | Description | Default
 | `AI_TEMPERATURE` | Temperature (0.0 for strict QA/Logic, 0.7 for creative) | `0.0` |
 | `GLOBAL_CONTEXT` | Path to a JSON file of global variables/URLs injected into the system prompt | `/agent/instructions/global_context.json` |
 | `EXTRA_INSTRUCTION` | Path to a Markdown file whose content is appended to the system prompt; ignored if the file does not exist | `/agent/instructions/extra-instructions.md` |
+| `PRESET_CONTEXT` | Path to a JSON file of preset context values seeded into the context store before any task runs; ignored if the file does not exist | `/agent/instructions/preset-context.json` |
 | `TEST_RUN_TIMEOUT` | Maximum total duration (in seconds) for the entire test run before it is stopped with status `timeout` | `7200` (2 hours) |
 | `STEP_TIMEOUT_SEC` | Maximum duration (in seconds) the agent may idle without receiving an LLM response per step before the task is marked failed | `120` (2 minutes) |
 | `MAX_SNAPSHOTS_HISTORY` | Maximum number of recent `browser_snapshot` tool results to keep in LLM message history; negative values are treated as `2`; `0` blocks direct `browser_snapshot` calls at runtime (use `take_verification_snapshot` instead) | `2` |
