@@ -26,9 +26,10 @@ Variable | Description | Default
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `AI_PROVIDER` | AI provider name. Allowed values are `anthropic`, `openai`, `gemini` or `deepseek` | `anthropic` |
+| `AI_PROVIDER` | AI provider name: `anthropic`, `openai`, `google` / `google-gemini` / `gemini`, `deepseek`, `gemma` | `anthropic` |
 | `AI_MODEL` | AI model name | — |
-| `AI_API_KEY` | AI API key | — |
+| `AI_API_KEY` | AI API key. For `gemma`, set to any non-empty string — Ollama does not validate it. | — |
+| `AI_BASE_URL` | Ollama server base URL. Required when `AI_PROVIDER=gemma` (e.g. `http://localhost:11434`). Ignored for all other providers. | — |
 | `AI_MAX_TOKENS` | Max tokens for a single response | `8192` |
 | `AI_TEMPERATURE` | Temperature (0.0 for strict QA/Logic, 0.7 for creative) | `0.0` |
 | `GLOBAL_CONTEXT` | Path to a JSON file of global variables/URLs injected into the system prompt | `/agent/instructions/global_context.json` |

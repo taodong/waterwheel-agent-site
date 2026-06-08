@@ -6,7 +6,7 @@ sidebar_position: 8
 
 # Provider Configuration Guide
 
-The following configurations are recommended based on our internal use cases. The goal is to minimize API cost while maintaining stable performance across a regression test suite of more than 10 test cases.
+The following configurations are recommended based on our internal use cases. The goal is to minimize API costs while maintaining stable performance across a regression test suite of more than 10 test cases.
 
 ## Claude
 Claude works well with our default prompts. The model we tested is `claude-sonnet-4-6`, so we recommend it as the minimum model.
@@ -50,7 +50,7 @@ MAXIMUM_RESTRICTED_TOOL_USAGE=3
    You can rename the provided `system-prompt-cn.md` to `system.prompt.md` and place it under `/agent/config`, replacing the existing English prompt file.
 
 ## OpenAI
-We briefly tested both `gpt-5.4` and `gpt-5.5`. We did not spend enough time tuning prompts to make them work reliably, but our expectation is that `gpt-5.4` should work with the right prompts.
+We briefly tested both `gpt-5.4` and `gpt-5.5`. We did not spend enough time tuning prompts to make them work reliably, but we expect `gpt-5.4` to work with the right prompts.
 
 ### Recommended Configuration
 ```shell
@@ -66,6 +66,7 @@ RATE_LIMIT_RETRY=2
 MAX_ITERATIONS=100
 MAXIMUM_RESTRICTED_TOOL_USAGE=3
 ```
+
 ### Observation
 1. GPT models have difficulty distinguishing a `link` from its `label` when a click is needed. Possible remedies are:
    - Add an extra instruction to regulate this behavior.
@@ -74,8 +75,7 @@ MAXIMUM_RESTRICTED_TOOL_USAGE=3
 
 ## Gemini
 
-Because Gemini does not have a universal API specification across models, the current agent version supports only `gemini-2.5-pro` and `gemini-2.5-flash`.
-Both models work fine according to our preliminary tests. The following table shows how the agent handles the thinking budget for these two models:
+Because Gemini does not have a universal API specification across models, the current agent version supports only `gemini-2.5-pro` and `gemini-2.5-flash`. Both models performed well in our preliminary tests. The following table shows how the agent handles the thinking budget for these two models:
 
 | Model | Thinking | Notes |
 |-------|----------|-------|
@@ -99,3 +99,32 @@ MAXIMUM_RESTRICTED_TOOL_USAGE=3
 
 ### Observation
 1. Possibly due to our low spend tier, our tests often fail with a 503 error (`This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.`). Our agent does not have a recovery mechanism for this situation. Please be cautious if you plan to run a large test suite.
+
+## Gemma 4
+
+To simplify API adaptation, our `Gemma 4` support is limited to `Ollama`-hosted models. You must configure both `AI_MODEL` and `AI_BASE_URL` to use Gemma 4.
+
+| Parameter | Description | Notes |
+|-------|----------|-------|
+| `AI_MODEL` | The AI model listed in `ollama` | The model name can be found with `ollama list`. |
+| `AI_BASE_URL` | The `ollama` web service base URL | If `ollama` runs on the host machine, use `http://host.docker.internal:<port>`. |
+
+### Recommended Configuration
+Although token cost is zero for a self-hosted `Gemma 4` model, we recommend the following efficiency-focused configuration to mitigate its short context window.
+
+```shell
+API_PROVIDER=gemma
+AI_MODEL=gemma4:26b
+AI_MAX_TOKENS=8192
+MAX_SNAPSHOTS_HISTORY=1
+CONTEXT_COMPRESSION=true
+COMPRESSION_THRESHOLD_MIN=12500
+COMPRESSION_THRESHOLD_LEAP=5000
+LARGE_CONTENT_THRESHOLD=10000
+RATE_LIMIT_RETRY=-1
+MAX_ITERATIONS=100
+MAXIMUM_RESTRICTED_TOOL_USAGE=5
+```
+
+### Observation
+1. The biggest challenge with `Gemma 4` is its high hallucination rate. For real-world testing, task instructions must be very specific, for example: fill the `Username` input field (id: `username`) with `abcd`. We recommend using it for simple (or chained simple) test tasks.

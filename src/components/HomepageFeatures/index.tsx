@@ -48,8 +48,8 @@ export const FeatureList: FeatureItem[] = [
     Svg: require('@site/static/img/feature_provider_agnostic.svg').default,
     description: (
       <>
-        Supports all major AI providers: Claude, OpenAI, Google Gemini, and
-        DeepSeek.{' '}
+        Supports all major AI providers: Claude, OpenAI, Google Gemini, 
+        DeepSeek, and Gemma 4.{' '}
         <a href="/docs/provider-guide">Provider Guide</a>
       </>
     ),
