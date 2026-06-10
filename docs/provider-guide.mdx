@@ -13,7 +13,7 @@ Claude works well with our default prompts. The model we tested is `claude-sonne
 
 ### Recommended Configuration
 ```shell
-API_PROVIDER=anthropic
+AI_PROVIDER=anthropic
 AI_MODEL=claude-sonnet-4-6
 AI_MAX_TOKENS=8192
 MAX_SNAPSHOTS_HISTORY=0
@@ -32,7 +32,7 @@ DeepSeek is the most cost-effective option for this agent. We tested both `deeps
 
 ### Recommended Configuration
 ```shell
-API_PROVIDER=deepseek
+AI_PROVIDER=deepseek
 AI_MODEL=deepseek-v4-pro
 AI_MAX_TOKENS=8192
 MAX_SNAPSHOTS_HISTORY=0
@@ -54,7 +54,7 @@ We briefly tested both `gpt-5.4` and `gpt-5.5`. We did not spend enough time tun
 
 ### Recommended Configuration
 ```shell
-API_PROVIDER=openai
+AI_PROVIDER=openai
 AI_MODEL=gpt-5.4
 AI_MAX_TOKENS=8192
 MAX_SNAPSHOTS_HISTORY=0
@@ -84,7 +84,7 @@ Because Gemini does not have a universal API specification across models, the cu
 
 ### Recommended Configuration
 ```shell
-API_PROVIDER=gemini
+AI_PROVIDER=gemini
 AI_MODEL=gemini-2.5-flash
 AI_MAX_TOKENS=8192
 MAX_SNAPSHOTS_HISTORY=0
@@ -113,7 +113,7 @@ To simplify API adaptation, our `Gemma 4` support is limited to `Ollama`-hosted 
 Although token cost is zero for a self-hosted `Gemma 4` model, we recommend the following efficiency-focused configuration to mitigate its short context window.
 
 ```shell
-API_PROVIDER=gemma
+AI_PROVIDER=gemma
 AI_MODEL=gemma4:26b
 AI_MAX_TOKENS=8192
 MAX_SNAPSHOTS_HISTORY=1
