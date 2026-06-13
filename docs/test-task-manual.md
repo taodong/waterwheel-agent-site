@@ -240,9 +240,9 @@ owner: qa-team
 
 ### A. Global Context — static values shared across all tests
 
-The agent supports a global context file configured by the `GLOBAL_CONTEXT` environment variable. The default path is `/agent/instructions/global_context.json`. Use this for fixed environment data such as base URLs, shared accounts, or tenant IDs.
+The agent supports a global context file configured by the `GLOBAL_CONTEXT` environment variable. The default path is `/agent/instructions/global-context.json`. Use this for fixed environment data such as base URLs, shared accounts, or tenant IDs.
 
-```json title="global_context.json (example)"
+```json title="global-context.json (example)"
 {
   "BASE_URL": "https://staging.example.com",
   "TENANT": "acme",
@@ -251,7 +251,7 @@ The agent supports a global context file configured by the `GLOBAL_CONTEXT` envi
 ```
 
 :::tip
-Use uppercase variable names in `global_context.json` to avoid naming conflicts with runtime context variables.
+Use uppercase variable names in `global-context.json` to avoid naming conflicts with runtime context variables.
 :::
 
 ### B. Preset context (default values seeded before any task runs)
