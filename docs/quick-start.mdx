@@ -1,95 +1,197 @@
 ---
+id: quick-start
+title: Quick Start
+sidebar_label: Quick Start
 sidebar_position: 1
+description: Install, configure, and run the Waterwheel QA agent in Docker on macOS, Linux, or Windows.
 ---
 
-# Quick Start
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
-A quick start guide to setup docker container of our `Waterwheel` agent on your local machine.
+This is a quick guide to get the Waterwheel agent running on your local machine and execute a sample QA task. The
+steps below cover **macOS / Linux**, **Windows (PowerShell)**, and
+**Windows (CMD)**. Use the tabs to pick your shell.
 
-:::note
-The `Waterwheel` Docker image is available on [our Docker Hub page](https://hub.docker.com/r/taojdcn/duotail-waterwheel)
+:::info[Once you're inside the container, the OS no longer matters]
+Only the host-side setup steps (setting environment variables and `docker run`)
+differ between operating systems. Commands such as `config-agent`, `run-qa`, and
+`check-test-result` are run through `docker exec` and are **identical on every
+platform**, so those steps are shown as a single code block.
 :::
 
-## What You'll Need
- 
-- Mac (Apple "M" series chip)
-- Docker Desktop
-- Your AI access API key 
+## Prerequisites
 
-## Installation
- 
-:::note
-All files mentioned in this section are bundled in [mac-local-install.zip](/files/installation/mac-local-install.zip). Download it and extract its contents before proceeding.
-:::
- 
-### 1. Create the Folder Structure
- 
+### Docker Desktop Application
+Install **Docker Desktop** for your machine from
+[docker.com/get-started](https://www.docker.com/get-started/) and make sure it is
+running before you continue.
 
-Run [create-sync-subfolders.sh](/files/installation/create-sync-subfolders.sh) to create the local folder structure used for Docker volume mapping.
+### AI API Key
+The agent must connect to an LLM to perform QA tasks, so you need to provide your own AI API key.
+Currently supported AI providers include Anthropic, OpenAI, Gemini, and DeepSeek.
 
-```shell
-chmod +x create-sync-subfolders.sh
-./create-sync-subfolders.sh /path/to/sync
-```
- 
-### 2. Configure Environment Variables
- 
-Open [dot_env.txt](/files/installation/dot_env.txt) and fill in the following variables.
-
-```shell
-WATERWHEEL_SYNC_VOLUME_PATH=${to_fill} # The folder `/path/to/sync` created in step 1
-API_PROVIDER=${to_fill}                # AI provider
-AI_MODEL=${to_fill}                    # AI model
-AI_API_KEY=${to_fill}                  # AI API key
-```
- 
-### 3. Place the Environment File
- 
-Rename `dot_env` to `.env` and place it in the same directory as [docker-compose.yml](/files/installation/docker-compose.yml).
- 
-### 4. Copy Instruction Files
- 
-Copy the following three files into `agent/instructions` under `/path/to/sync`.
-
-- [allowed-domains.yaml](/files/installation/allowed-domains.yaml)
-- [email-permissions.yaml](/files/installation/email-permissions.yaml)
-- [global-context.json](/files/installation/global-context.json)
-
-### 5. Copy Task File
- 
-Copy <a href="/files/installation/test-wikipedia-english.md" download>test-wikipedia-english.md</a> into `/path/to/sync/agent/tasks`.
-
-:::note
-You can also try complicated chained test cases by copying <a href="/files/installation/1_test_wikipedia_search.md" download>1_test_wikipedia_search.md</a> and <a href="/files/installation/2_test_wikipedia_navigate.md" download>2_test_wikipedia_navigate.md</a> into `/path/to/sync/agent/tasks`.
-However, the API cost may be above $1 per test without configuration tuning.
+:::note[Gemma 4 Support]
+For simple QA tasks, you can use `Ollama`-hosted `Gemma 4`.
+When using `Gemma 4`, you can use any non-empty text as the API key.
 :::
 
-### 6. Deploy the Docker Container
- 
-From the same directory as `docker-compose.yml`, run:
- 
-```shell
-docker compose up -d
-```
- 
-## Verify Installation
- 
-To verify the installation, run the following command on your local machine and confirm no errors are reported in `/path/to/sync/agent/outputs/agent.log`.
- 
-```shell
-docker compose exec waterwheel-agent run-qa --dry-run
-```
- 
-## Execute Tests
- 
-To execute all tests under `/path/to/sync/agent/tasks`, run the following command on your local machine.
- 
-```shell
-docker compose exec waterwheel-agent run-qa
-```
- 
-Once the command completes, check the results at `/path/to/sync/agent/outputs/test-results.json`.
+## 1. Set Your API Key
 
-:::warning
-OpenAI, even with its latest `gpt-5.5` model, has difficulty differentiating between a link and its label. You may experience test failure if OpenAI is your configured AI provider. Please view our [Provider Guide](./provider-guide#openai) for details.
+Export your AI provider API key into the current shell session. The optional
+second line silences Docker's CLI hint messages.
+
+<Tabs groupId="os">
+<TabItem value="unix" label="macOS / Linux" default>
+
+```bash
+# Required: your AI provider API key
+export AI_API_KEY=your_api_key_here
+
+# Optional: silence Docker CLI hint messages
+export DOCKER_CLI_HINTS=false
+```
+
+</TabItem>
+<TabItem value="powershell" label="Windows (PowerShell)">
+
+```powershell
+# Required: your AI provider API key
+$env:AI_API_KEY = "your_api_key_here"
+
+# Optional: silence Docker CLI hint messages
+$env:DOCKER_CLI_HINTS = "false"
+```
+
+</TabItem>
+<TabItem value="cmd" label="Windows (CMD)">
+
+```bat
+:: Required: your AI provider API key
+set AI_API_KEY=your_api_key_here
+
+:: Optional: silence Docker CLI hint messages
+set DOCKER_CLI_HINTS=false
+```
+
+</TabItem>
+</Tabs>
+
+:::note[Session Scope]
+These variables live only in the terminal window where you set them. Run the
+`docker run` command in **step 2** from the **same** terminal so the key is
+available to the container.
 :::
+
+## 2. Install the Waterwheel Container
+
+This pulls the image (on first run) and starts the agent in the background. It
+mounts two folders from your current directory: `tasks` for the QA task files
+you want the agent to run, and `outputs` where results and logs are written.
+
+<Tabs groupId="os">
+<TabItem value="unix" label="macOS / Linux" default>
+
+```bash
+docker run -d --name waterwheel-agent \
+  -v "$(pwd)/tasks":/agent/tasks \
+  -v "$(pwd)/outputs":/agent/outputs \
+  -e AI_API_KEY \
+  taojdcn/duotail-waterwheel:1.1.0
+```
+
+</TabItem>
+<TabItem value="powershell" label="Windows (PowerShell)">
+
+```powershell
+docker run -d --name waterwheel-agent `
+  -v "${PWD}/tasks:/agent/tasks" `
+  -v "${PWD}/outputs:/agent/outputs" `
+  -e AI_API_KEY `
+  taojdcn/duotail-waterwheel:1.1.0
+```
+
+</TabItem>
+<TabItem value="cmd" label="Windows (CMD)">
+
+```bat
+docker run -d --name waterwheel-agent ^
+  -v "%cd%/tasks:/agent/tasks" ^
+  -v "%cd%/outputs:/agent/outputs" ^
+  -e AI_API_KEY ^
+  taojdcn/duotail-waterwheel:1.1.0
+```
+
+</TabItem>
+</Tabs>
+
+:::tip[Volume mounts on Windows]
+Docker Desktop's WSL 2 backend handles `${PWD}` (PowerShell) and `%cd%` (CMD)
+automatically. If a volume fails to mount, confirm that your drive is shared
+under **Docker Desktop → Settings → Resources → File sharing**.
+:::
+
+## 3. Configure the Agent
+
+Launch the interactive configuration script. It walks you through choosing an AI
+provider mode.
+
+```bash
+docker exec -it waterwheel-agent config-agent
+```
+
+:::warning[The AI provider is locked once set]
+After you save a provider mode, switching to a **different** provider (for
+example Anthropic → DeepSeek) requires creating a new container. You can still
+switch between modes of the same provider at any time. See the
+[Provider Configuration Guide](./provider-guide) for recommended provider settings.
+:::
+
+## 4. Download Sample Test
+Download <a href="/files/installation/test-wikipedia-english.md" download>test-wikipedia-english.md</a> and copy it into your `tasks` folder.
+This sample test verifies that clicking the `English` language link on [wikipedia.org](https://www.wikipedia.org) navigates to the English welcome page.
+
+## 5. Verify Your Configuration
+
+Run a dry run first to confirm everything is wired up correctly without consuming tokens.
+
+```bash
+docker exec -it waterwheel-agent run-qa --dry-run
+```
+
+## 6. Run Your QA Tasks
+
+When the dry run looks good, execute the tests in the `tasks` directory, which contains the sample test from step 4.
+
+```bash
+docker exec -it waterwheel-agent run-qa
+```
+
+## 7. Check the Results
+
+Print the contents of the latest test results.
+
+```bash
+docker exec -it waterwheel-agent check-test-result
+```
+
+:::tip[Investigating a failure]
+For a detailed diagnostic report of the first failed test — including the test
+steps, agent log, and context — use:
+
+```bash
+docker exec -it waterwheel-agent get-failure-detail
+```
+:::
+
+## Uninstallation
+
+If you need to change your AI provider, uninstall the agent and reconfigure it from step 1. Your `tasks` and `outputs`
+folders on the host are untouched.
+
+```bash
+docker rm -f waterwheel-agent
+```
+
+## Next Steps
+Please read [Usage](./usage) and [Manage Test Tasks](./test-task-manual) to learn how to use the agent to test your website.

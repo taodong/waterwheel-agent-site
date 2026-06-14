@@ -2,8 +2,26 @@
 sidebar_position: 2
 ---
 # Usage
+## Commands
+The container provides the following commands to help you perform your web testing.  
 
-## Command
+| Command                    | Usage                                         |
+|----------------------------|----------------------------------------------------------|
+| `run-qa`                   | Run QA tasks                 |
+| `stop-qa`                  | Stop current QA run                   |
+| `check-test-result`        | Check test result        |
+| `get-failure-detail`       | Get failure details         |
+| `config-agent`             | Configure AI provider, browser permission and enable testing website deployed on host machime |
+| `manage-global-constants`  | Manage global constants    |
+| `manage-context-variables` | Manage context variables   |
+
+To run these commands on your host machine, you can simply prepend `docker exec -it waterwheel` in front of them.
+
+```shell title="Execute run-qa on host machine"
+docker exec -it waterwheel-agent run-qa
+```
+
+## `run-qa` Command
 
 The container provides a preconfigured command `run-qa` that executes all tests found under the `/agent/tasks` folder. It performs the following steps in order:
 
