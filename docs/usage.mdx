@@ -1,6 +1,8 @@
 ---
 sidebar_position: 2
 ---
+import Since from '@site/src/components/Since';
+
 # Usage
 ## Commands
 The container provides the following commands to help you perform your web testing.  
@@ -21,9 +23,10 @@ To run these commands on your host machine, you can simply prepend `docker exec 
 docker exec -it waterwheel-agent run-qa
 ```
 
-## `run-qa` Command
+## `run-qa` Command 
+<Since version="1.0.0" />
 
-The container provides a preconfigured command `run-qa` that executes all tests found under the `/agent/tasks` folder. It performs the following steps in order:
+Command `run-qa` executes all tests found under the `/agent/tasks` folder. It performs the following steps in order:
 
 1. Clear outputs from any previous run
 2. Restart the preinstalled MCP servers and reload any changed permissions
@@ -46,19 +49,19 @@ Dry run performs the following steps in order:
 
 ## Inputs
 
-The agent requires at least one test file under `/agent/tasks`. All test files must be in Markdown format and include `name` and `id` as YAML front matter properties.
+The agent requires at least one test file under `/agent/tasks`. All test files must be in text files with `.md` extention. 
 
-```markdown
----
-name: Sample Test
-id: my-id
----
-
-# Sample Test
-...
+```markdown title="Sample Test Task"
+1. Navigate to https://www.wikipedia.org
+2. Click the English language link on the Wikipedia main page.
+3. Confirm the banner text "Welcome to Wikipedia" is displayed on the English Wikipedia homepage.
 ```
 
 See the [Manage Test Tasks](./test-task-manual) section for full details on authoring test files.
+
+:::info[Only file extention matters]
+There is no markdown format requirement on how you structure your test file. Your tasks will be executed as long as its file extention is `.md`. 
+:::
 
 ## Outputs
 
