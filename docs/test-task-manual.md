@@ -1,7 +1,7 @@
 ---
 title: Manage Test Tasks
 description: How to author, structure, and organise test task files for the Waterwheel agent.
-sidebar_position: 4
+sidebar_position: 3
 ---
 
 # Manage Test Tasks
