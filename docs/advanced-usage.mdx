@@ -1,25 +1,20 @@
 ---
-sidebar_position: 12
+sidebar_position: 4
 ---
 
-# Quick Start Copy
+# Advanced Usage
 
-A quick start guide to setup docker container of our `Waterwheel` agent on your local machine.
+To fully customize the Waterwheel agent in a Docker environment, you can use Docker Compose to bring up the container using the instructions in this document.
 
-:::note
-The `Waterwheel` Docker image is available on [our Docker Hub page](https://hub.docker.com/r/taojdcn/duotail-waterwheel)
+:::warning[Mac Only]
+All scripts and commands used in this document are Mac only.
+To use Docker Compose on Windows, you will need to convert the scripts and commands to Windows equivalents yourself.
 :::
-
-## What You'll Need
- 
-- Mac (Apple "M" series chip)
-- Docker Desktop
-- Your AI access API key 
 
 ## Installation
  
 :::note
-All files mentioned in this section are bundled in [mac-local-install.zip](/files/installation/mac-local-install.zip). Download it and extract its contents before proceeding.
+All files mentioned in this section are bundled in [waterwhell-installer.zip](/files/installation/waterwheel-installer.zip). Download it and extract its contents before proceeding.
 :::
  
 ### 1. Create the Folder Structure
@@ -60,7 +55,7 @@ Copy the following three files into `agent/instructions` under `/path/to/sync`.
 Copy <a href="/files/installation/test-wikipedia-english.md" download>test-wikipedia-english.md</a> into `/path/to/sync/agent/tasks`.
 
 :::note
-You can also try complicated chained test cases by copying <a href="/files/installation/1_test_wikipedia_search.md" download>1_test_wikipedia_search.md</a> and <a href="/files/installation/2_test_wikipedia_navigate.md" download>2_test_wikipedia_navigate.md</a> into `/path/to/sync/agent/tasks`.
+You can also try more complex chained test cases by copying <a href="/files/installation/1_test_wikipedia_search.md" download>1_test_wikipedia_search.md</a> and <a href="/files/installation/2_test_wikipedia_navigate.md" download>2_test_wikipedia_navigate.md</a> into `/path/to/sync/agent/tasks`.
 However, the API cost may be above $1 per test without configuration tuning.
 :::
 
@@ -91,5 +86,5 @@ docker compose exec waterwheel-agent run-qa
 Once the command completes, check the results at `/path/to/sync/agent/outputs/test-results.json`.
 
 :::warning
-OpenAI, even with its latest `gpt-5.5` model, has difficulty differentiating between a link and its label. You may experience test failure if OpenAI is your configured AI provider. Please view our [Provider Guide](./provider-guide#openai) for details.
+OpenAI, even with its latest `gpt-5.5` model, has difficulty differentiating between a link and its label. You may experience test failure if OpenAI is your configured AI provider. See our [Provider Guide](./provider-guide#openai) for details.
 :::

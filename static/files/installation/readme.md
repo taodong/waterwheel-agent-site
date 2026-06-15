@@ -20,7 +20,6 @@ The files in this package are used to configure Duotail Waterwheel front end tes
 ## Prerequirement
 The agent requires the following environment
  
-- Mac (Apple "M" series chip)
 - Docker Desktop
 
 ## Installation

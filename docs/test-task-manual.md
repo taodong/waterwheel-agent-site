@@ -6,8 +6,19 @@ sidebar_position: 3
 
 # Manage Test Tasks
 
+## Summary
 All test tasks scheduled to run by the agent must be plain-text Markdown (`.md`) files placed under the `/agent/tasks` directory.
-The agent runs all tests in sequence following their natural dependencies. The following example demonstrates two chained tests:
+The agent runs all tests in sequence following their natural dependencies. 
+
+We choose markdown file to present test tasks because LLMs excel at understanding markdown files. In our implementation, the agent uses the file extention `.md` to identifie task fils only. There is no markdown format required in the test files. You can use plain text to describe your task without using any markdown style. If you're not familiar with markdown style, we recommend you to break your task inot number ordered steps which will greatly reduce the token comsumption rate.
+
+```text title="Sample Test"
+1. Go to https://www.wikipedia.org.
+2. Click "English" language
+3. Verify the banner text "Welcome to Wikipedia" is displayed
+```
+
+By using markdown format, you can create chained tests which the agent runs in sequence following their natural dependencies. The following example demonstrates two chained tests:
 - <a href="/files/installation/1_test_wikipedia_search.md" download>1_test_wikipedia_search.md</a>
 - <a href="/files/installation/2_test_wikipedia_navigate.md" download>2_test_wikipedia_navigate.md</a>
 
@@ -237,6 +248,11 @@ owner: qa-team
 | `customFields` | Present if custom fields were defined |
 
 ## Passing Data Between Tests
+Waterwheel gives a test access to data from three layers, so you rarely need to hard-code values into a test file. **Global context** supplies static, shared values (base URLs, tenant IDs) that are injected into every test; **preset context** seeds key/value pairs before the run that a test can read or override; and **runtime context** carries values that one test discovers and stores via `context-manager.set` for later tests to consume. Because a test references its inputs by name rather than by value, the same test file can run unchanged across environments — only the source of each variable changes.  
+
+The example below shows this in action: the `test_new_feature.md` file is byte-for-byte identical in Dev and QA, yet in Dev its credentials come from a static preset, while in QA they are generated at runtime by a prerequisite user-creation test.
+
+![Sharing Test Across Environments](/img/test-manual/test-sharing-across-environments.svg)
 
 ### A. Global Context — static values shared across all tests
 
