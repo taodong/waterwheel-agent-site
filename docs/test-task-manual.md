@@ -17,7 +17,7 @@ We use Markdown files for test tasks because LLMs excel at understanding Markdow
 3. Verify the banner text "Welcome to Wikipedia" is displayed
 ```
 
-Using Markdown, you can create chained tests that the agent runs in sequence, following their natural dependencies. The following example demonstrates two chained tests:
+One advantage of using Markdown structure is that you can create chained tests that fit into different workflows. The following example demonstrates two chained tests:
 - <a href="/files/installation/1_test_wikipedia_search.md" download>1_test_wikipedia_search.md</a>
 - <a href="/files/installation/2_test_wikipedia_navigate.md" download>2_test_wikipedia_navigate.md</a>
 
@@ -26,8 +26,8 @@ Using Markdown, you can create chained tests that the agent runs in sequence, fo
 - Place test files under `/agent/tasks`.
 - Use the `.md` extension.
 - Each file contains two parts:
-  1. YAML front matter properties
-  2. Markdown test instructions
+  1. Optional YAML front matter properties
+  2. Test instructions, ideally in Markdown format
 
 ```md
 ---
