@@ -6,11 +6,10 @@ sidebar_position: 3
 
 # Manage Test Tasks
 
-## Summary
 All test tasks scheduled to run by the agent must be plain-text Markdown (`.md`) files placed under the `/agent/tasks` directory.
-The agent runs all tests in sequence following their natural dependencies. 
+The agent runs all tests in sequence, following their natural dependencies.
 
-We choose markdown file to present test tasks because LLMs excel at understanding markdown files. In our implementation, the agent uses the file extention `.md` to identifie task fils only. There is no markdown format required in the test files. You can use plain text to describe your task without using any markdown style. If you're not familiar with markdown style, we recommend you to break your task inot number ordered steps which will greatly reduce the token comsumption rate.
+We use Markdown files for test tasks because LLMs excel at understanding Markdown. In our implementation, the agent uses the `.md` file extension to identify task files only. There is no required Markdown format for test files. You can use plain text to describe your task without any Markdown styling. If you are not familiar with Markdown, we recommend breaking your task into ordered, numbered steps, which can significantly reduce token consumption.
 
 ```text title="Sample Test"
 1. Go to https://www.wikipedia.org.
@@ -18,7 +17,7 @@ We choose markdown file to present test tasks because LLMs excel at understandin
 3. Verify the banner text "Welcome to Wikipedia" is displayed
 ```
 
-By using markdown format, you can create chained tests which the agent runs in sequence following their natural dependencies. The following example demonstrates two chained tests:
+Using Markdown, you can create chained tests that the agent runs in sequence, following their natural dependencies. The following example demonstrates two chained tests:
 - <a href="/files/installation/1_test_wikipedia_search.md" download>1_test_wikipedia_search.md</a>
 - <a href="/files/installation/2_test_wikipedia_navigate.md" download>2_test_wikipedia_navigate.md</a>
 
@@ -276,7 +275,7 @@ Use uppercase variable names in `global-context.json` to avoid naming conflicts 
 - Default file path is `./instructions/preset-context.json`.
 - If the file exists, key-value pairs are stored in `context-manager` before the first task runs.
 - Unlike global context, preset values are not injected into the system prompt — they live in the context store and are read or overwritten by the agent via the `context-manager` tool.
-- Test can override preset values for the same key.
+- A test can override preset values for the same key.
 
 Example `preset-context.json`:
 
