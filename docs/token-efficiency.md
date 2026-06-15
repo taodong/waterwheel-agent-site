@@ -1,7 +1,7 @@
 ---
 title: Token Efficiency
 description: Configuration practices for teams looking to reduce token usage and API call volume.
-sidebar_position: 8
+sidebar_position: 9
 ---
 
 # Token Efficiency
