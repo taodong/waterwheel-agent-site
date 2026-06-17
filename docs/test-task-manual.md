@@ -17,10 +17,6 @@ We use Markdown files for test tasks because LLMs excel at understanding Markdow
 3. Verify the banner text "Welcome to Wikipedia" is displayed
 ```
 
-One advantage of using Markdown structure is that you can create chained tests that fit into different workflows. The following example demonstrates two chained tests:
-- <a href="/files/installation/1_test_wikipedia_search.md" download>1_test_wikipedia_search.md</a>
-- <a href="/files/installation/2_test_wikipedia_navigate.md" download>2_test_wikipedia_navigate.md</a>
-
 ## File Location and Structure
 
 - Place test files under `/agent/tasks`.
@@ -33,9 +29,6 @@ One advantage of using Markdown structure is that you can create chained tests t
 ---
 name: Register and Activate Account
 id: 2
-node: 1
-required: 0
-ignore: false
 release: 0.3.0
 ticket: Bug-002
 ---
@@ -55,26 +48,16 @@ Run the registration and activation flow.
   - Test identifier, stored as text.
   - If omitted, the filename is used.
 
-- **`node`** _(optional)_
-  - Dependency node assigned to this test.
-  - Must be a non-negative integer.
-  - Invalid values are ignored.
-
-- **`required`** _(optional)_
-  - Dependency requirements — the node IDs this test depends on.
-  - Must be non-negative integer values.
-  - Invalid values are ignored.
-  - When present and valid, this test is treated as a dependent test.
-
-- **`ignore`** _(optional)_
-  - Only `true` (case-insensitive) excludes the test from the run.
-  - Both `true` and `True` are treated as ignored.
 
 ### Custom Fields
 
 Any property key not in the reserved list is treated as custom metadata and exported under `customFields` in `test-results.json`.
 
 Reserved keys: `name`, `id`, `node`, `required`, `ignore`
+
+:::note[Silent ignored keys]
+`node`, `required`, and `ignore` are reserved but no longer read from front-matter — they are silently ignored if present. Define them in `preset-context.json` under the `flow` key instead.
+:::
 
 Custom field behaviour:
 - Values are copied into `customFields` and converted to text.
@@ -84,10 +67,10 @@ Custom field behaviour:
 
 ### Independent Test
 
-A test without a `required` field.
+A test with no `required` entry in the flow configuration.
 
 - Always eligible to run.
-- May or may not have a `node`.
+- May or may not have a `node` assigned in the flow configuration.
 
 ```md
 ---
@@ -100,20 +83,26 @@ Open the home page and verify it loads correctly.
 
 ### Dependent Test
 
-A test with a `required` field.
+A test with a `required` entry in the flow configuration.
 
 - Runs only when the required nodes satisfy the dependency rules.
-- May include a `node` or not.
+- Configure `node` and `required` in `preset-context.json`, not in front-matter.
 
 ```md
 ---
 name: Purchase Plan
 id: 3
-node: 2
-required: 1
 ---
 # Purchase Plan
 Purchase a subscription plan.
+```
+
+```json title="preset-context.json (flow configuration)"
+{
+  "flow": [
+    { "file": "purchase-plan.md", "node": 2, "required": 1 }
+  ]
+}
 ```
 
 ## Dependency Check Rules
@@ -135,7 +124,7 @@ Additional rules:
 | Status | Meaning | Typical Trigger | Dependency Impact |
 |---|---|---|---|
 | `queued` | Initial state before the execution decision. | Loader initialises test entries. | Not treated as satisfied. |
-| `ignored` | User intentionally excluded this test from the run. | `ignore: true` in front matter. | Excluded from dependency evaluation. |
+| `ignored` | User intentionally excluded this test from the run. | `ignore: true` in the flow configuration. | Excluded from dependency evaluation. |
 | `success` | Test executed and passed. | Task run completes successfully. | Satisfies required node checks. |
 | `failed` | Test executed but failed. | Task run completes with failure. | Does not satisfy required node checks; dependent tests become `abort` unless an `abort` or `skipped` rule applies first. |
 | `abort` | Test did not run because dependency requirements cannot be satisfied. | Dependency checker cannot validate required nodes as successful. | Causes dependent tests requiring that node to become `skipped`. |
@@ -145,7 +134,7 @@ Additional rules:
 
 These statuses are distinct:
 
-- **`ignored`**: the test was intentionally excluded from this run via `ignore: true`.
+- **`ignored`**: the test was intentionally excluded from this run via `ignore: true` in the flow configuration.
 - **`skipped`**: the test was intended to run but could not, due to an upstream dependency failure.
 
 Behavioural differences:
@@ -168,55 +157,96 @@ id: 1
 
 ### Pattern B — Independent test on a node
 
+Task file:
+
 ```md
 ---
 name: Test 2
 id: 2
-node: 1
 ---
 # Test 2
 ...
 ```
 
+Flow configuration:
+
+```json
+{
+  "flow": [
+    { "file": "test-2.md", "node": 1 }
+  ]
+}
+```
+
 ### Pattern C — Dependent test with one required node
+
+Task file:
 
 ```md
 ---
 name: Test 3
 id: 3
-node: 2
-required: 1
 ---
 # Test 3
 ...
 ```
 
+Flow configuration:
+
+```json
+{
+  "flow": [
+    { "file": "test-3.md", "node": 2, "required": 1 }
+  ]
+}
+```
+
 ### Pattern D — Dependent test with multiple required nodes
+
+Task file:
 
 ```md
 ---
 name: Test 4
 id: 4
-required: 1,2
 ---
 # Test 4
 ...
 ```
 
+Flow configuration:
+
+```json
+{
+  "flow": [
+    { "file": "test-4.md", "required": [1, 2] }
+  ]
+}
+```
+
 ### Pattern E — Ignored test with custom metadata
+
+Task file:
 
 ```md
 ---
 name: Experimental Flow
 id: 9
-node: 5
-required: 1
-ignore: true
 release: 0.3.0
 owner: qa-team
 ---
 # Experimental Flow
 ...
+```
+
+Flow configuration:
+
+```json
+{
+  "flow": [
+    { "file": "experimental-flow.md", "node": 5, "required": 1, "ignore": true }
+  ]
+}
 ```
 
 ## Output Mapping Reference
@@ -269,28 +299,52 @@ The agent supports a global context file configured by the `GLOBAL_CONTEXT` envi
 Use uppercase variable names in `global-context.json` to avoid naming conflicts with runtime context variables.
 :::
 
-### B. Preset context (default values seeded before any task runs)
+### B. Preset context (default values and flow control)
 
 - The agent supports a preset context file configured by `PRESET_CONTEXT`.
 - Default file path is `./instructions/preset-context.json`.
-- If the file exists, key-value pairs are stored in `context-manager` before the first task runs.
-- Unlike global context, preset values are not injected into the system prompt — they live in the context store and are read or overwritten by the agent via the `context-manager` tool.
-- A test can override preset values for the same key.
+- The file has two optional top-level keys: `data` and `flow`.
+
+#### `data` — seed values before any task runs
+
+Key-value pairs under `data` are stored in `context-manager` before the first task runs. Unlike global context, preset values are not injected into the system prompt — they live in the context store and are read or overwritten by the agent via the `context-manager` tool. A test can override preset values for the same key.
+
+Values support any JSON type: string, number, boolean, object, array.
+
+#### `flow` — execution order and dependencies
+
+The `flow` array defines `node`, `required`, and `ignore` for each task file. This separates execution topology from test content, so the same `.md` file can be used across different suites or environments without modification.
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `file` | `string` | yes | Exact basename of the task file (e.g. `login.md`). Must match a file in `/agent/tasks`. |
+| `node` | `number` | no | Node number for grouping and dependency references. |
+| `required` | `number \| number[]` | no | Node number(s) that must succeed before this task runs. |
+| `ignore` | `boolean` | no | If `true`, the task is skipped and excluded from dependency evaluation. |
+
+- Task files with no matching flow entry run as independent tests (no node, no required).
+- A `flow` entry whose `file` does not match any discovered task file is a fatal error — the agent exits immediately.
+- When `flow` is absent, all tasks run as independent tests.
 
 Example `preset-context.json`:
 
 ```json
 {
-  "admin_username": "qa_user",
-  "admin_password": "s3cret",
-  "feature_new_checkout": true
+  "data": {
+    "admin_username": "qa_user",
+    "admin_password": "s3cret",
+    "feature_new_checkout": true
+  },
+  "flow": [
+    { "file": "login.md", "node": 1 },
+    { "file": "checkout.md", "node": 2, "required": [1] },
+    { "file": "smoke.md", "ignore": true }
+  ]
 }
 ```
 
-Values support any JSON type: string, number, boolean, object, array.
-
 :::tip
-This is useful to make tests reusable across different configurations. For example, you can test a single bug by injecting necessary context values without running all its dependent tests.
+This is useful to make tests reusable across different configurations. For example, you can test a single bug by injecting necessary context values without running all its dependent tests, or swap execution order between environments by changing only `preset-context.json`.
 :::
 
 ### C. Runtime Context — values discovered during a test and reused by later tests
@@ -319,13 +373,12 @@ Runtime context variable names are case-sensitive.
 
 ### D. Dependency with data passing
 
-If test B requires data produced by test A, define the dependency explicitly using `node` and `required`. This ensures the producer test always runs before the consumer, eliminating race conditions and missing-data errors. Even with dependency ordering in place, always validate required context values at the start of the consumer test.
+If test B requires data produced by test A, define the dependency explicitly using `node` and `required` in `preset-context.json`. This ensures the producer test always runs before the consumer, eliminating race conditions and missing-data errors. Even with dependency ordering in place, always validate required context values at the start of the consumer test.
 
 ```md title="Producer"
 ---
 name: Create Order
 id: 10
-node: 10
 ---
 # Create Order
 Create an order, then store `order_id` using `context-manager set`.
@@ -335,11 +388,18 @@ Create an order, then store `order_id` using `context-manager set`.
 ---
 name: Cancel Order
 id: 11
-node: 11
-required: 10
 ---
 # Cancel Order
 Read `order_id` from `context-manager` and cancel that order.
+```
+
+```json title="preset-context.json"
+{
+  "flow": [
+    { "file": "create-order.md", "node": 10 },
+    { "file": "cancel-order.md", "node": 11, "required": 10 }
+  ]
+}
 ```
 
 ## Quick Author Checklist
@@ -348,11 +408,16 @@ Before committing a new task file:
 
 - [ ] File has the `.md` extension.
 - [ ] YAML front matter is valid and enclosed by `---`.
-- [ ] `node` is a non-negative integer when used.
-- [ ] `required` lists valid non-negative integer node IDs.
-- [ ] `ignore: true` is used only for tests intentionally excluded from the run.
-- [ ] Any extra metadata uses non-reserved keys.
+- [ ] Front-matter contains only `name`, `id`, and custom metadata — no `node`, `required`, or `ignore`.
+- [ ] Any extra metadata uses non-reserved keys (`name`, `id` are reserved).
 - [ ] The test body clearly describes the actions to take and the expected outcomes.
+
+Before updating `preset-context.json`:
+
+- [ ] Each `flow` entry's `file` value exactly matches a task filename in `/agent/tasks`.
+- [ ] `node` values are non-negative integers.
+- [ ] `required` values reference valid node numbers defined elsewhere in the `flow` array.
+- [ ] `ignore: true` is used only for tests intentionally excluded from the run.
 
 ## Recommended Best Practices
 
