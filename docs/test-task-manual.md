@@ -63,9 +63,40 @@ Custom field behaviour:
 - Values are copied into `customFields` and converted to text.
 - Output shape: `Record<string, string>`
 
-## Test Types
+## Define Test Flow
 
-### Independent Test
+A *flow* defines the execution order of your tests and the dependencies between them. It is configured by the `flow` array in `preset-context.json`, which maps each task file to a `node`, optional `required` dependencies, and an optional `ignore` flag. Keeping the flow separate from the test content means the same `.md` file can be reused across different suites or environments without modification — only `preset-context.json` changes.
+
+When `flow` is absent, every task runs as an independent test in discovery order.
+
+### Flow Configuration
+
+Each entry in the `flow` array supports the following fields:
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `file` | `string` | yes | Exact basename of the task file (e.g. `login.md`). Must match a file in `/agent/tasks`. |
+| `node` | `number` | no | Node number for grouping and dependency references. |
+| `required` | `number \| number[]` | no | Node number(s) that must succeed before this task runs. |
+| `ignore` | `boolean` | no | If `true`, the task is skipped and excluded from dependency evaluation. |
+
+- Task files with no matching flow entry run as independent tests (no node, no required).
+- A `flow` entry whose `file` does not match any discovered task file is a fatal error — the agent exits immediately.
+- When `flow` is absent, all tasks run as independent tests.
+
+```json title="preset-context.json (flow configuration)"
+{
+  "flow": [
+    { "file": "login.md", "node": 1 },
+    { "file": "checkout.md", "node": 2, "required": [1] },
+    { "file": "smoke.md", "ignore": true }
+  ]
+}
+```
+
+### Test Types
+
+#### Independent Test
 
 A test with no `required` entry in the flow configuration.
 
@@ -81,7 +112,7 @@ id: 1
 Open the home page and verify it loads correctly.
 ```
 
-### Dependent Test
+#### Dependent Test
 
 A test with a `required` entry in the flow configuration.
 
@@ -105,7 +136,7 @@ Purchase a subscription plan.
 }
 ```
 
-## Dependency Check Rules
+### Dependency Check Rules
 
 For a dependent test, the agent evaluates the required nodes against tests that appear earlier in the run:
 
@@ -119,7 +150,11 @@ Additional rules:
 - If multiple tests share the same `node`, that node is `success` only when all tests on that node succeed.
 - Ignored tests are excluded from node evaluation.
 
-## Test Status
+The diagram below shows these rules in action across a single run: `node` and `required` chain the tests together, and a non-successful node cascades downstream — first as `abort`, then as `skipped`.
+
+![Dependencies in a Flow](/img/test-manual/dependencies-in-a-flow.svg)
+
+### Test Status
 
 | Status | Meaning | Typical Trigger | Dependency Impact |
 |---|---|---|---|
@@ -130,7 +165,7 @@ Additional rules:
 | `abort` | Test did not run because dependency requirements cannot be satisfied. | Dependency checker cannot validate required nodes as successful. | Causes dependent tests requiring that node to become `skipped`. |
 | `skipped` | Test was planned but could not run due to upstream dependency state. | Any required node is `abort` or `skipped`. | Causes downstream dependent tests requiring that node to become `skipped`. |
 
-### `ignored` vs `skipped`
+#### `ignored` vs `skipped`
 
 These statuses are distinct:
 
@@ -142,9 +177,9 @@ Behavioural differences:
 - Ignored tests are never executed.
 - Ignored tests do not satisfy dependencies, even if they declare a `node`.
 
-## Authoring Patterns
+### Authoring Patterns
 
-### Pattern A — Independent test, no node
+#### Pattern A — Independent test, no node
 
 ```md
 ---
@@ -155,7 +190,7 @@ id: 1
 ...
 ```
 
-### Pattern B — Independent test on a node
+#### Pattern B — Independent test on a node
 
 Task file:
 
@@ -178,7 +213,7 @@ Flow configuration:
 }
 ```
 
-### Pattern C — Dependent test with one required node
+#### Pattern C — Dependent test with one required node
 
 Task file:
 
@@ -201,7 +236,7 @@ Flow configuration:
 }
 ```
 
-### Pattern D — Dependent test with multiple required nodes
+#### Pattern D — Dependent test with multiple required nodes
 
 Task file:
 
@@ -224,7 +259,7 @@ Flow configuration:
 }
 ```
 
-### Pattern E — Ignored test with custom metadata
+#### Pattern E — Ignored test with custom metadata
 
 Task file:
 
@@ -276,7 +311,7 @@ Flow configuration:
 | `required` | Present if validly parsed |
 | `customFields` | Present if custom fields were defined |
 
-## Passing Data Between Tests
+## Pass Data Between Tests
 Waterwheel gives a test access to data from three layers, so you rarely need to hard-code values into a test file. **Global context** supplies static, shared values (base URLs, tenant IDs) that are injected into every test; **preset context** seeds key/value pairs before the run that a test can read or override; and **runtime context** carries values that one test discovers and stores via `context-manager.set` for later tests to consume. Because a test references its inputs by name rather than by value, the same test file can run unchanged across environments — only the source of each variable changes.  
 
 The example below shows this in action: the `test_new_feature.md` file is byte-for-byte identical in Dev and QA, yet in Dev its credentials come from a static preset, while in QA they are generated at runtime by a prerequisite user-creation test.
@@ -313,18 +348,7 @@ Values support any JSON type: string, number, boolean, object, array.
 
 #### `flow` — execution order and dependencies
 
-The `flow` array defines `node`, `required`, and `ignore` for each task file. This separates execution topology from test content, so the same `.md` file can be used across different suites or environments without modification.
-
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `file` | `string` | yes | Exact basename of the task file (e.g. `login.md`). Must match a file in `/agent/tasks`. |
-| `node` | `number` | no | Node number for grouping and dependency references. |
-| `required` | `number \| number[]` | no | Node number(s) that must succeed before this task runs. |
-| `ignore` | `boolean` | no | If `true`, the task is skipped and excluded from dependency evaluation. |
-
-- Task files with no matching flow entry run as independent tests (no node, no required).
-- A `flow` entry whose `file` does not match any discovered task file is a fatal error — the agent exits immediately.
-- When `flow` is absent, all tasks run as independent tests.
+The `flow` array controls the execution order of tasks and the dependencies between them. Because it lives in `preset-context.json` rather than in the task files, the same `.md` file can be reused across suites and environments without modification. See [Define Test Flow](#define-test-flow) for the full field reference and authoring patterns.
 
 Example `preset-context.json`:
 

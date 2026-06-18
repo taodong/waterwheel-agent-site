@@ -1,0 +1,122 @@
+<svg viewBox="0 0 1180 600" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <style>
+      text { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace; }
+    </style>
+    <marker id="depArrow" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L6,3 L0,6 Z" fill="#94A3B8"/></marker>
+  </defs>
+
+  <!-- background -->
+  <rect x="0" y="0" width="1180" height="600" fill="#F8FAFC"/>
+
+  <!-- header -->
+  <text x="590" y="44" text-anchor="middle" font-size="28" font-weight="700" fill="#0F172A">Dependencies in a Flow</text>
+  <text x="590" y="72" text-anchor="middle" font-size="15" fill="#475569">How <tspan class="mono" fill="#0F172A">node</tspan> and <tspan class="mono" fill="#0F172A">required</tspan> control execution order and propagate status across a run</text>
+
+  <!-- ===== arrows (drawn first so cards sit on top) ===== -->
+  <line x1="217" y1="225" x2="266" y2="225" stroke="#94A3B8" stroke-width="1.8" marker-end="url(#depArrow)"/>
+  <line x1="447" y1="225" x2="496" y2="225" stroke="#94A3B8" stroke-width="1.8" marker-end="url(#depArrow)"/>
+  <line x1="677" y1="225" x2="726" y2="225" stroke="#94A3B8" stroke-width="1.8" marker-end="url(#depArrow)"/>
+  <line x1="907" y1="225" x2="956" y2="225" stroke="#94A3B8" stroke-width="1.8" marker-end="url(#depArrow)"/>
+  <text x="241" y="216" text-anchor="middle" class="mono" font-size="10" fill="#64748B">req 1</text>
+  <text x="471" y="216" text-anchor="middle" class="mono" font-size="10" fill="#64748B">req 2</text>
+  <text x="701" y="216" text-anchor="middle" class="mono" font-size="10" fill="#64748B">req 3</text>
+  <text x="931" y="216" text-anchor="middle" class="mono" font-size="10" fill="#64748B">req 4</text>
+
+  <!-- ===== Card 0: login - SUCCESS ===== -->
+  <rect x="40" y="150" width="175" height="150" rx="12" fill="#ffffff" stroke="#6EE7B7" stroke-width="2"/>
+  <rect x="40" y="150" width="175" height="34" rx="12" fill="#059669"/>
+  <rect x="40" y="172" width="175" height="12" fill="#059669"/>
+  <rect x="50" y="157" width="46" height="18" rx="9" fill="#ffffff" fill-opacity="0.22"/>
+  <text x="73" y="170" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">node 1</text>
+  <text x="102" y="170" font-size="12" font-weight="700" fill="#ffffff" class="mono">login.md</text>
+  <text x="127" y="208" text-anchor="middle" font-size="11" fill="#475569">Sign in</text>
+  <rect x="83" y="226" width="88" height="22" rx="11" fill="#ECFDF5" stroke="#6EE7B7"/>
+  <text x="127" y="241" text-anchor="middle" font-size="11" font-weight="700" fill="#047857">SUCCESS</text>
+  <text x="127" y="272" text-anchor="middle" font-size="10.5" fill="#475569">No required node</text>
+  <text x="127" y="287" text-anchor="middle" font-size="10.5" fill="#475569">&#8594; runs</text>
+
+  <!-- ===== Card 1: cart - SUCCESS ===== -->
+  <rect x="270" y="150" width="175" height="150" rx="12" fill="#ffffff" stroke="#6EE7B7" stroke-width="2"/>
+  <rect x="270" y="150" width="175" height="34" rx="12" fill="#059669"/>
+  <rect x="270" y="172" width="175" height="12" fill="#059669"/>
+  <rect x="280" y="157" width="46" height="18" rx="9" fill="#ffffff" fill-opacity="0.22"/>
+  <text x="303" y="170" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">node 2</text>
+  <text x="332" y="170" font-size="12" font-weight="700" fill="#ffffff" class="mono">cart.md</text>
+  <text x="357" y="208" text-anchor="middle" font-size="11" fill="#475569">Add item to cart</text>
+  <rect x="313" y="226" width="88" height="22" rx="11" fill="#ECFDF5" stroke="#6EE7B7"/>
+  <text x="357" y="241" text-anchor="middle" font-size="11" font-weight="700" fill="#047857">SUCCESS</text>
+  <text x="357" y="272" text-anchor="middle" font-size="10.5" fill="#475569">Node 1 = success</text>
+  <text x="357" y="287" text-anchor="middle" font-size="10.5" fill="#475569">&#8594; runs</text>
+
+  <!-- ===== Card 2: payment - FAILED ===== -->
+  <rect x="500" y="150" width="175" height="150" rx="12" fill="#ffffff" stroke="#FCA5A5" stroke-width="2"/>
+  <rect x="500" y="150" width="175" height="34" rx="12" fill="#DC2626"/>
+  <rect x="500" y="172" width="175" height="12" fill="#DC2626"/>
+  <rect x="510" y="157" width="46" height="18" rx="9" fill="#ffffff" fill-opacity="0.22"/>
+  <text x="533" y="170" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">node 3</text>
+  <text x="562" y="170" font-size="12" font-weight="700" fill="#ffffff" class="mono">payment.md</text>
+  <text x="587" y="208" text-anchor="middle" font-size="11" fill="#475569">Submit payment</text>
+  <rect x="543" y="226" width="88" height="22" rx="11" fill="#FEF2F2" stroke="#FCA5A5"/>
+  <text x="587" y="241" text-anchor="middle" font-size="11" font-weight="700" fill="#B91C1C">FAILED</text>
+  <text x="587" y="272" text-anchor="middle" font-size="10.5" fill="#475569">Ran, assertion failed</text>
+  <text x="587" y="287" text-anchor="middle" font-size="10.5" fill="#475569">&#8594; failed</text>
+
+  <!-- ===== Card 3: receipt - ABORT ===== -->
+  <rect x="730" y="150" width="175" height="150" rx="12" fill="#ffffff" stroke="#FCD34D" stroke-width="2"/>
+  <rect x="730" y="150" width="175" height="34" rx="12" fill="#D97706"/>
+  <rect x="730" y="172" width="175" height="12" fill="#D97706"/>
+  <rect x="740" y="157" width="46" height="18" rx="9" fill="#ffffff" fill-opacity="0.22"/>
+  <text x="763" y="170" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">node 4</text>
+  <text x="792" y="170" font-size="12" font-weight="700" fill="#ffffff" class="mono">receipt.md</text>
+  <text x="817" y="208" text-anchor="middle" font-size="11" fill="#475569">Show receipt</text>
+  <rect x="773" y="226" width="88" height="22" rx="11" fill="#FFFBEB" stroke="#FCD34D"/>
+  <text x="817" y="241" text-anchor="middle" font-size="11" font-weight="700" fill="#B45309">ABORT</text>
+  <text x="817" y="272" text-anchor="middle" font-size="10.5" fill="#475569">Node 3 &#8800; success</text>
+  <text x="817" y="287" text-anchor="middle" font-size="10.5" fill="#475569">&#8594; abort</text>
+
+  <!-- ===== Card 4: email - SKIPPED ===== -->
+  <rect x="960" y="150" width="175" height="150" rx="12" fill="#ffffff" stroke="#CBD5E1" stroke-width="2"/>
+  <rect x="960" y="150" width="175" height="34" rx="12" fill="#64748B"/>
+  <rect x="960" y="172" width="175" height="12" fill="#64748B"/>
+  <rect x="970" y="157" width="46" height="18" rx="9" fill="#ffffff" fill-opacity="0.22"/>
+  <text x="993" y="170" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">node 5</text>
+  <text x="1022" y="170" font-size="12" font-weight="700" fill="#ffffff" class="mono">email.md</text>
+  <text x="1047" y="208" text-anchor="middle" font-size="11" fill="#475569">Send confirmation</text>
+  <rect x="1003" y="226" width="88" height="22" rx="11" fill="#F1F5F9" stroke="#CBD5E1"/>
+  <text x="1047" y="241" text-anchor="middle" font-size="11" font-weight="700" fill="#475569">SKIPPED</text>
+  <text x="1047" y="272" text-anchor="middle" font-size="10.5" fill="#475569">Node 4 = abort</text>
+  <text x="1047" y="287" text-anchor="middle" font-size="10.5" fill="#475569">&#8594; skipped</text>
+
+  <!-- takeaway -->
+  <text x="590" y="338" text-anchor="middle" font-size="13" font-style="italic" fill="#475569">A non-successful required node stops its dependents &#8212; failure cascades downstream as abort, then skipped.</text>
+
+  <!-- ===== legend ===== -->
+  <rect x="40" y="362" width="1100" height="198" rx="12" fill="#ffffff" stroke="#E2E8F0"/>
+  <text x="60" y="390" font-size="13" font-weight="700" fill="#0F172A">How dependency status propagates</text>
+
+  <circle cx="66" cy="418" r="6" fill="#059669"/>
+  <text x="80" y="422" font-size="12" font-weight="700" fill="#047857">Success</text>
+  <text x="60" y="444" font-size="11" fill="#475569">All required nodes</text>
+  <text x="60" y="460" font-size="11" fill="#475569">succeeded &#8212; the test runs.</text>
+
+  <circle cx="340" cy="418" r="6" fill="#DC2626"/>
+  <text x="354" y="422" font-size="12" font-weight="700" fill="#B91C1C">Failed</text>
+  <text x="334" y="444" font-size="11" fill="#475569">Ran but its checks failed;</text>
+  <text x="334" y="460" font-size="11" fill="#475569">dependents become abort.</text>
+
+  <circle cx="614" cy="418" r="6" fill="#D97706"/>
+  <text x="628" y="422" font-size="12" font-weight="700" fill="#B45309">Abort</text>
+  <text x="608" y="444" font-size="11" fill="#475569">A required node was not</text>
+  <text x="608" y="460" font-size="11" fill="#475569">successful, so it can't run.</text>
+
+  <circle cx="888" cy="418" r="6" fill="#64748B"/>
+  <text x="902" y="422" font-size="12" font-weight="700" fill="#475569">Skipped</text>
+  <text x="882" y="444" font-size="11" fill="#475569">An upstream node was</text>
+  <text x="882" y="460" font-size="11" fill="#475569">aborted or skipped.</text>
+
+  <line x1="60" y1="486" x2="1120" y2="486" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="60" y="514" font-size="12" fill="#475569"><tspan class="mono" font-weight="700" fill="#0F172A">node</tspan> &#8212; labels a test so other tests can depend on it.</text>
+  <text x="60" y="538" font-size="12" fill="#475569"><tspan class="mono" font-weight="700" fill="#0F172A">required</tspan> &#8212; the node number(s) that must succeed before this test is eligible to run.</text>
+</svg>
