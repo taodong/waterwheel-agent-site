@@ -3,21 +3,167 @@
  * and scoped locally.
  */
 
+/* ---------- Hero ---------- */
 .heroBanner {
-  padding: 4rem 0;
+  padding: 5rem 0 4rem;
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
+.heroTitle {
+  font-size: 4rem;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.heroSubtitle {
+  max-width: 720px;
+  margin: 0 auto 2rem;
+  font-size: 1.4rem;
+  line-height: 1.4;
+}
+
 @media screen and (max-width: 996px) {
   .heroBanner {
-    padding: 2rem;
+    padding: 3rem 1.5rem;
+  }
+
+  .heroTitle {
+    font-size: 2.8rem;
+  }
+
+  .heroSubtitle {
+    font-size: 1.15rem;
   }
 }
 
 .buttons {
   display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
   align-items: center;
   justify-content: center;
+}
+
+/* Ghost button that reads well on the blue hero gradient */
+.heroGhostButton {
+  background-color: transparent;
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+}
+
+.heroGhostButton:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border-color: #ffffff;
+}
+
+/* Quick value-prop pills under the CTAs */
+.heroBadges {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  padding: 0;
+  margin: 2.25rem auto 0;
+  max-width: 760px;
+}
+
+.heroBadge {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #ffffff;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(2px);
+}
+
+/* ---------- Shared section headings ---------- */
+.sectionTitle {
+  font-size: 2.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.sectionSubtitle {
+  max-width: 640px;
+  margin: 0 auto;
+  color: var(--ifm-color-emphasis-600);
+  font-size: 1.15rem;
+  line-height: 1.5;
+}
+
+@media screen and (max-width: 996px) {
+  .sectionTitle {
+    font-size: 1.9rem;
+  }
+}
+
+/* ---------- How it works ---------- */
+.howItWorks {
+  padding: 4.5rem 0 2rem;
+}
+
+.howItWorksRow {
+  margin-top: 3rem;
+  align-items: center;
+  row-gap: 2rem;
+}
+
+.steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.step {
+  display: flex;
+  gap: 1.1rem;
+  align-items: flex-start;
+  margin-bottom: 1.75rem;
+}
+
+.step:last-child {
+  margin-bottom: 0;
+}
+
+.step p {
+  margin: 0;
+  color: var(--ifm-color-emphasis-600);
+  line-height: 1.5;
+}
+
+.stepNumber {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #ffffff;
+  background: linear-gradient(135deg, #1e6fd9 0%, #3dd8e8 100%);
+  box-shadow: 0 4px 12px rgba(30, 111, 217, 0.3);
+}
+
+.stepTitle {
+  font-size: 1.4rem;
+  margin: 0.1rem 0 0.4rem;
+}
+
+/* ---------- Call to action ---------- */
+.cta {
+  padding: 4rem 0 5rem;
+  text-align: center;
+}
+
+.ctaCode {
+  max-width: 480px;
+  margin: 2rem auto;
+  text-align: left;
 }
