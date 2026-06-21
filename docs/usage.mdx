@@ -9,13 +9,14 @@ The container provides the following commands to help you run web tests.
 
 | Command                    | Usage                                         |
 |----------------------------|----------------------------------------------------------|
-| `run-qa`                   | Run QA tasks                 |
-| `stop-qa`                  | Stop current QA run                   |
-| `check-test-result`        | Check test results        |
-| `get-failure-detail`       | Get failure details         |
-| `config-agent`             | Configure AI provider, browser permissions, and access to a test website deployed on the host machine |
-| `manage-global-constants`  | Manage global constants    |
-| `manage-context-variables` | Manage context variables   |
+| [`run-qa`](#run-qa-command)                   | Run QA tasks                 |
+| [`stop-qa`](#stop-qa-command)                  | Stop current QA run                   |
+| [`check-test-result`](#check-test-result-command)        | Check test results        |
+| [`get-failure-detail`](#get-failure-detail-command)       | Get failure details         |
+| [`config-agent`](#config-agent-command)             | Configure AI provider, browser permissions, and access to a test website deployed on the host machine |
+| [`manage-global-constants`](#manage-global-constants-command)  | Manage global constants    |
+| [`manage-test-files`](#manage-test-files-command)        | Manage markdown test task files |
+| [`preset-context`](#preset-context-command)           | Manage preset context variables and test flow |
 
 To run these commands on your host machine, prepend `docker exec -it waterwheel-agent`.
 
@@ -97,7 +98,7 @@ stop-qa
 ## `check-test-result` Command
 <Since version="1.1.0" />
 
-`check-test-result` prints the content of `$AGENT_PATH/outputs/test-results.json`, or reports the current run status if a test is still in progress. It is a helper command for code agent integration.
+`check-test-result` prints the overall outcome of the latest run, or reports the current run status if a test is still in progress. It is a helper command for code agent integration.
 
 ```shell
 check-test-result
@@ -107,7 +108,7 @@ check-test-result
 | Condition | Output |
 | --- | --- |
 | `run-qa` is currently active | A message indicating testing is in progress, including the orchestrator PID |
-| `test-results.json` exists | The full JSON content of the results file |
+| Test results exist | The exit condition summarizing the run outcome |
 | `test-results.json` missing, `agent.log` missing | `ℹ️  No test results found.` |
 | `test-results.json` missing, `agent.log` exists | `ℹ️  No test results found.` followed by the full content of `agent.log` |
 
@@ -145,7 +146,8 @@ Each section is printed in order. Missing files are reported inline and do not a
 | `run-qa` is currently active | A message indicating testing is in progress, including the orchestrator PID |
 | `test-results.json` missing, `agent.log` missing | `ℹ️  No test results found.` |
 | `test-results.json` missing, `agent.log` exists | `ℹ️  No test results found.` followed by the full content of `agent.log` |
-| `test-results.json` exists, no failed tests | `✅ No failed tests found in test results.` |
+| Run did not complete | `⚠️  Run did not complete:` followed by the exit condition |
+| Test results exist, no failed tests | `✅ No failed tests found in test results.` |
 
 ## `config-agent` Command
 <Since version="1.1.0" />
@@ -221,6 +223,9 @@ manage-global-constants list
 # Set multiple values (quoted and unquoted)
 manage-global-constants set BASE_URL="https://staging.example.com",TENANT=acme,SUPPORT_EMAIL=qa@example.com
 
+# Set nested values with dotted keys
+manage-global-constants set user.username=qa_user,user.password=secret
+
 # Overwrite an existing key
 manage-global-constants set TENANT=newcorp
 
@@ -229,56 +234,121 @@ manage-global-constants delete BASE_URL,TENANT
 
 # Remove all values (also deletes the file)
 manage-global-constants clear
-
-# Use a custom agent path
-manage-global-constants -ap /tmp/my-agent set BASE_URL="https://local.example.com"
 ```
 
 :::note[Operation Rules]
 - Key names are case-sensitive. We recommend using uppercase names.
 - Values may be quoted or unquoted.
+- Dotted keys create nested objects (for example, `user.username=qa_user` becomes `{ "user": { "username": "qa_user" } }`).
 - Unknown key names in `delete` print a warning but do not cause an error; any found keys are still deleted.
 :::
 
-## `manage-context-variables` Command
-<Since version="1.1.0" />
+## `manage-test-files` Command
+<Since version="1.2.0" />
 
-The `manage-context-variables` command provides a simple entry point to configure [preset context variables](./test-task-manual#b-preset-context-default-values-seeded-before-any-task-runs).
-It has the same interface as `manage-global-constants` but is intended to supply per-run variable overrides on top of the global context.
+The `manage-test-files` command manages the markdown test task files the agent runs. Use it to add, list, and remove `.md` task files without copying files into the container by hand.
 
 ```shell
-manage-context-variables <operation> [args]
+manage-test-files <operation> [args]
 ```
 
 ### Operations
 | Operation | Arguments | Description |
 | --- | --- | --- |
-| `list` | — | Display all current values, or a message if none are set |
-| `set` | `key=value,...` | Set one or more key/value pairs (comma-delimited) |
-| `delete` | `key,...` | Delete one or more keys by name (comma-delimited) |
-| `clear` | — | Delete the entire context file |
+| `list` | — | List `.md` task files with 1-based indexes |
+| `add` | `path1,path2,...` | Add markdown files from file paths and direct directory children; non-markdown files are ignored |
+| `delete` | `selector1,selector2,...` | Delete by 1-based index or exact filename (basename only), best effort |
+| `clear` | — | Delete all markdown test files |
 | `help` / `h` | — | Show usage |
 
 ### Examples
-```bash
-# List all values
-manage-context-variables list
+```shell
+# List current markdown test files
+manage-test-files list
+
+# Add two markdown files
+manage-test-files add ./instructions/test-a.md,./instructions/test-b.md
+
+# Add all direct markdown files from a directory (subdirectories are ignored)
+manage-test-files add ./instructions
+
+# Delete by index
+manage-test-files delete 1,3
+
+# Delete by filename and index in one call
+manage-test-files delete login-flow.md,2
+
+# Clear all markdown test files
+manage-test-files clear
+```
+
+:::note[Operation Rules]
+- Only `.md` files are listed and managed.
+- `add` overwrites an existing file with the same destination name silently.
+- Directory import includes only direct child files, not subdirectories.
+- `delete` is best effort: invalid selectors print warnings while valid selectors are still deleted.
+:::
+
+## `preset-context` Command
+<Since version="1.2.0" />
+
+The `preset-context` command configures [preset context](./test-task-manual#b-preset-context-default-values-and-flow-control), which supplies per-run variable overrides on top of the global context and controls the test flow. It exposes two mutually exclusive families:
+
+- `variables` manages the seed values used before any task runs.
+- `flow` imports or clears the test execution flow (the order and dependencies between tasks).
+
+A single command call may use only one family. Mixed invocations are rejected.
+
+```shell
+preset-context <family> [args]
+```
+
+### `variables` Operations
+| Operation | Arguments | Description |
+| --- | --- | --- |
+| `list` | — | Display all current values, or a message if none are set |
+| `set` | `key=value,...` | Set one or more key/value pairs (comma-delimited) |
+| `delete` | `key,...` | Delete one or more keys by name (supports dotted paths) |
+| `clear` | — | Clear all preset values; the flow is preserved |
+| `help` / `h` | — | Show usage |
+
+### `flow` Usage
+| Arguments | Description |
+| --- | --- |
+| `flow.json` | Import a JSON file whose top-level object contains a `flow` array; other properties are ignored and the existing flow is replaced |
+| `clear` | Clear the existing flow; preset values are preserved |
+
+See the [Define Test Flow](./test-task-manual#define-test-flow) section for full details on authoring the flow file.
+
+### Examples
+```shell
+# List all preset values
+preset-context variables list
 
 # Set preset overrides
-manage-context-variables set username=admin,password=123456789
+preset-context variables set username=admin,password=123456789
 
-# Remove a specific key
-manage-context-variables delete username
+# Set nested values with dotted keys
+preset-context variables set user.username=admin,user.password=123456789
 
-# Clear all preset context
-manage-context-variables clear
+# Remove keys (supports dotted keys)
+preset-context variables delete username,user.password
 
-# Use a custom agent path
-manage-context-variables -ap /tmp/my-agent list
+# Clear preset values (flow is preserved)
+preset-context variables clear
+
+# Import the test flow from a JSON file
+preset-context flow ./instructions/preset-flow.json
+
+# Clear the flow (preset values are preserved)
+preset-context flow clear
 ```
 
 :::note[Operation Rules]
 - Key names are case-sensitive. We recommend using lowercase or camelCase names.
 - Values may be quoted or unquoted.
+- Dotted keys create nested objects (for example, `user.username=admin` becomes `{ "user": { "username": "admin" } }`).
+- `variables` and `flow` are mutually exclusive in a single call.
+- When importing a flow file, the JSON must contain a top-level `flow` array; extra properties are ignored.
 - Unknown key names in `delete` print a warning but do not cause an error; any found keys are still deleted.
 :::
