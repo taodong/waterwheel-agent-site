@@ -1,0 +1,71 @@
+---
+title: Release Notes
+description: Version history and upgrade information for the Waterwheel agent.
+sidebar_position: 12
+---
+
+# Release Notes
+
+The Waterwheel agent is distributed as a pre-built Docker image, free to use.
+
+**Docker image:** [taojdcn/duotail-waterwheel](https://hub.docker.com/r/taojdcn/duotail-waterwheel)
+
+:::tip[Use the latest release]
+We recommend always running the latest version, **`1.2.0`**.
+
+```shell
+docker pull taojdcn/duotail-waterwheel:1.2.0
+```
+:::
+
+## 1.2.0 — latest
+
+The current release. It builds on `1.1.0` with richer test configuration and new
+helper commands.
+
+- **`preset-context.json`** — a single file to manage per-run context variables
+  and to configure the **test flow** (execution order and dependencies between
+  tasks).
+- **New commands:**
+  - [`manage-test-files`](./usage#manage-test-files-command) — add, list, and
+    remove the markdown task files the agent runs.
+  - [`preset-context`](./usage#preset-context-command) — manage the context
+    variables and test flow stored in `preset-context.json`.
+
+```shell
+docker pull taojdcn/duotail-waterwheel:1.2.0
+```
+
+## 1.1.0
+
+Added multi-platform support and the first set of command-line tools.
+
+- **Multi-platform images** — published for both `linux/amd64` and `linux/arm64`.
+- **New commands:**
+  - [`stop-qa`](./usage#stop-qa-command) — stop the current QA run.
+  - [`check-test-result`](./usage#check-test-result-command) — check the latest
+    test results.
+  - [`get-failure-detail`](./usage#get-failure-detail-command) — print a
+    diagnostic report for the first failed test.
+  - [`config-agent`](./usage#config-agent-command) — configure the AI provider,
+    browser permissions, and access to a test website on the host.
+  - [`manage-global-constants`](./usage#manage-global-constants-command) — manage
+    global constants shared across all tests.
+  - `manage-context-variables` — manage per-run context variable overrides.
+    *(Replaced by [`preset-context`](./usage#preset-context-command) in 1.2.0.)*
+
+:::note[Documentation for 1.1.0]
+This site always documents the latest release. To read the documentation that
+shipped with `1.1.0`, check out the
+[`1.1.0` branch of the site repository](https://github.com/taodong/waterwheel-agent-site/tree/1.1.0)
+and build it locally.
+:::
+
+## 1.0.0-mac
+
+The first release, used for beta testing on macOS machines only.
+
+:::warning[Deprecated]
+`1.0.0-mac` is no longer supported and should not be used. Please upgrade to the
+latest release.
+:::
