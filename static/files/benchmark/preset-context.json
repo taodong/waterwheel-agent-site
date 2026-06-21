@@ -1,0 +1,19 @@
+{
+  "release": "0.3.0",
+  "tests": [
+    {
+      "file": "v0.3.0_1_test_register_account.md",
+      "node": 1
+    },
+    {
+      "file": "v0.3.0_2_test_new_subscription_route.md",
+      "node": 2,
+      "required": 1
+    },
+    {
+      "file": "v0.3.0_3_test_route_listener.md",
+      "node": 3,
+      "required": 2
+    }
+  ]
+}
