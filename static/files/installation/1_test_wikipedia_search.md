@@ -1,7 +1,6 @@
 ---
 name: Wikipedia — Search and Verify Article
 id: 1
-node: 1
 ---
 
 # Wikipedia — Search and Verify Article

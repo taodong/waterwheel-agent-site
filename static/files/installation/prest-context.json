@@ -1,0 +1,13 @@
+{
+    "flow": [
+        {
+            "file": "1_test_wikipedia_search.md",
+            "node": 1
+        },
+        {
+            "file": "2_test_wikipedia_navigate.md",
+            "node": 2,
+            "required": 1
+        }
+    ]
+}

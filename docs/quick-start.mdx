@@ -15,9 +15,10 @@ steps below cover **macOS / Linux**, **Windows (PowerShell)**, and
 
 :::info[Once you're inside the container, the OS no longer matters]
 Only the host-side setup steps (setting environment variables and `docker run`)
-differ between operating systems. Commands such as `config-agent`, `run-qa`, and
-`check-test-result` are run through `docker exec` and are **identical on every
-platform**, so those steps are shown as a single code block.
+differ between operating systems. Commands such as `config-agent`,
+`manage-test-files`, `run-qa`, and `check-test-result` are run through
+`docker exec` and are **identical on every platform**, so those steps are shown
+as a single code block.
 :::
 
 ## Prerequisites
@@ -29,7 +30,7 @@ running before you continue.
 
 ### AI API Key
 The agent must connect to an LLM to perform QA tasks, so you need to provide your own AI API key.
-Currently supported AI providers include Anthropic, OpenAI, Gemini, and DeepSeek.
+Currently supported AI providers include `Anthropic`, `OpenAI`, `Gemini`, `DeepSeek` and Ollma hosted `Gemma 4`.
 
 :::note[Gemma 4 Support]
 For simple QA tasks, you can use `Ollama`-hosted `Gemma 4`.
@@ -86,8 +87,8 @@ available to the container.
 ## 2. Install the Waterwheel Container
 
 This pulls the image (on first run) and starts the agent in the background. It
-mounts two folders from your current directory: `tasks` for the QA task files
-you want the agent to run, and `outputs` where results and logs are written.
+mounts two folders from your current directory: `tasks` for the QA task files you
+want the agent to run, and `outputs` where results and logs are written.
 
 <Tabs groupId="os">
 <TabItem value="unix" label="macOS / Linux" default>
@@ -97,7 +98,7 @@ docker run -d --name waterwheel-agent \
   -v "$(pwd)/tasks":/agent/tasks \
   -v "$(pwd)/outputs":/agent/outputs \
   -e AI_API_KEY \
-  taojdcn/duotail-waterwheel:1.1.0
+  taojdcn/duotail-waterwheel:1.2.0
 ```
 
 </TabItem>
@@ -108,7 +109,7 @@ docker run -d --name waterwheel-agent `
   -v "${PWD}/tasks:/agent/tasks" `
   -v "${PWD}/outputs:/agent/outputs" `
   -e AI_API_KEY `
-  taojdcn/duotail-waterwheel:1.1.0
+  taojdcn/duotail-waterwheel:1.2.0
 ```
 
 </TabItem>
@@ -119,7 +120,7 @@ docker run -d --name waterwheel-agent ^
   -v "%cd%/tasks:/agent/tasks" ^
   -v "%cd%/outputs:/agent/outputs" ^
   -e AI_API_KEY ^
-  taojdcn/duotail-waterwheel:1.1.0
+  taojdcn/duotail-waterwheel:1.2.0
 ```
 
 </TabItem>
@@ -147,9 +148,31 @@ switch between modes of the same provider at any time. See the
 [Provider Configuration Guide](./provider-guide) for recommended provider settings.
 :::
 
-## 4. Download Sample Test
-Download <a href="/files/installation/test-wikipedia-english.md" download>test-wikipedia-english.md</a> and copy it into your `tasks` folder.
-This sample test verifies that clicking the `English` language link on [wikipedia.org](https://www.wikipedia.org) navigates to the English welcome page.
+## 4. Add a Sample Test
+
+Download the sample test into the `tasks` folder next to where you ran
+`docker run`:
+
+<a href="/files/installation/test-wikipedia-english.md" download>test-wikipedia-english.md</a>
+
+This sample verifies that clicking the `English` language link on
+[wikipedia.org](https://www.wikipedia.org) navigates to the English welcome page.
+
+Because `tasks` is mounted into the container, the file is available immediately.
+Confirm the agent sees it:
+
+```bash
+docker exec -it waterwheel-agent manage-test-files list
+```
+
+The `list` command should show `test-wikipedia-english.md`.
+
+:::tip[Managing tasks later]
+Drop more `.md` files into your `tasks` folder to add them, or remove files from
+it to drop them. You can also manage tasks with `manage-test-files add`,
+`manage-test-files delete`, and `manage-test-files clear`. See the
+[Usage](./usage#manage-test-files-command) guide for the full command reference.
+:::
 
 ## 5. Verify Your Configuration
 

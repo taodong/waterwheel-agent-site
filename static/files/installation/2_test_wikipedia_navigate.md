@@ -1,8 +1,6 @@
 ---
 name: Wikipedia — Follow a Link and Verify Related Article
 id: 2
-node: 2
-required: 1
 ---
 
 # Wikipedia — Follow a Link and Verify Related Article

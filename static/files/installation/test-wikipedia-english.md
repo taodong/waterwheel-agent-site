@@ -1,6 +1,6 @@
 ---
 name: Test Wikipedia English Language Banner
-id: 3
+id: sample-1
 ---
 
 # Test Wikipedia English Language Banner
