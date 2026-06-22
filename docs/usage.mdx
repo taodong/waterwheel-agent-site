@@ -287,6 +287,7 @@ manage-test-files clear
 - `add` overwrites an existing file with the same destination name silently.
 - Directory import includes only direct child files, not subdirectories.
 - `delete` is best effort: invalid selectors print warnings while valid selectors are still deleted.
+- Source paths passed to `add` are resolved inside the container, not on the host machine. Make sure the files are reachable from a mapped volume (for example, under `/agent`) before referencing them.
 :::
 
 ## `preset-context` Command
@@ -355,5 +356,6 @@ preset-context flow list
 - `variables` and `flow` are mutually exclusive in a single call.
 - `flow list` displays the entries currently stored in `preset-context.json`; if none are set, a message is shown.
 - When importing a flow file, the JSON must contain a top-level `flow` array; extra properties are ignored.
+- The flow file path is resolved inside the container, not on the host machine. Make sure the file is reachable from a mapped volume (for example, under `/agent`) before referencing it.
 - Unknown key names in `delete` print a warning but do not cause an error; any found keys are still deleted.
 :::
