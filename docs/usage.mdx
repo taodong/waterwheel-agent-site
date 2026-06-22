@@ -295,7 +295,7 @@ manage-test-files clear
 The `preset-context` command configures [preset context](./test-task-manual#b-preset-context-default-values-and-flow-control), which supplies per-run variable overrides on top of the global context and controls the test flow. It exposes two mutually exclusive families:
 
 - `variables` manages the seed values used before any task runs.
-- `flow` imports or clears the test execution flow (the order and dependencies between tasks).
+- `flow` lists, imports, or clears the test execution flow (the order and dependencies between tasks).
 
 A single command call may use only one family. Mixed invocations are rejected.
 
@@ -315,6 +315,7 @@ preset-context <family> [args]
 ### `flow` Usage
 | Arguments | Description |
 | --- | --- |
+| `list` | Display the current flow entries, or a message if none are set |
 | `flow.json` | Import a JSON file whose top-level object contains a `flow` array; other properties are ignored and the existing flow is replaced |
 | `clear` | Clear the existing flow; preset values are preserved |
 
@@ -342,6 +343,9 @@ preset-context flow ./instructions/preset-flow.json
 
 # Clear the flow (preset values are preserved)
 preset-context flow clear
+
+# List current flow entries
+preset-context flow list
 ```
 
 :::note[Operation Rules]
@@ -349,6 +353,7 @@ preset-context flow clear
 - Values may be quoted or unquoted.
 - Dotted keys create nested objects (for example, `user.username=admin` becomes `{ "user": { "username": "admin" } }`).
 - `variables` and `flow` are mutually exclusive in a single call.
+- `flow list` displays the entries currently stored in `preset-context.json`; if none are set, a message is shown.
 - When importing a flow file, the JSON must contain a top-level `flow` array; extra properties are ignored.
 - Unknown key names in `delete` print a warning but do not cause an error; any found keys are still deleted.
 :::
