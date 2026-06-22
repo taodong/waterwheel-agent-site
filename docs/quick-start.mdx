@@ -87,15 +87,16 @@ available to the container.
 ## 2. Install the Waterwheel Container
 
 This pulls the image (on first run) and starts the agent in the background. It
-mounts two folders from your current directory: `tasks` for the QA task files you
-want the agent to run, and `outputs` where results and logs are written.
+mounts two folders from your current directory: `import`, a staging area for any
+files you want to move into the container (test tasks, preset flow files, and so
+on), and `outputs` where results and logs are written.
 
 <Tabs groupId="os">
 <TabItem value="unix" label="macOS / Linux" default>
 
 ```bash
 docker run -d --name waterwheel-agent \
-  -v "$(pwd)/tasks":/agent/tasks \
+  -v "$(pwd)/import":/agent/import \
   -v "$(pwd)/outputs":/agent/outputs \
   -e AI_API_KEY \
   taojdcn/duotail-waterwheel:1.2.0
@@ -106,7 +107,7 @@ docker run -d --name waterwheel-agent \
 
 ```powershell
 docker run -d --name waterwheel-agent `
-  -v "${PWD}/tasks:/agent/tasks" `
+  -v "${PWD}/import:/agent/import" `
   -v "${PWD}/outputs:/agent/outputs" `
   -e AI_API_KEY `
   taojdcn/duotail-waterwheel:1.2.0
@@ -117,7 +118,7 @@ docker run -d --name waterwheel-agent `
 
 ```bat
 docker run -d --name waterwheel-agent ^
-  -v "%cd%/tasks:/agent/tasks" ^
+  -v "%cd%/import:/agent/import" ^
   -v "%cd%/outputs:/agent/outputs" ^
   -e AI_API_KEY ^
   taojdcn/duotail-waterwheel:1.2.0
@@ -150,7 +151,7 @@ switch between modes of the same provider at any time. See the
 
 ## 4. Add a Sample Test
 
-Download the sample test into the `tasks` folder next to where you ran
+Download the sample test into the `import` folder next to where you ran
 `docker run`:
 
 <a href="/files/installation/test-wikipedia-english.md" download>test-wikipedia-english.md</a>
@@ -158,8 +159,15 @@ Download the sample test into the `tasks` folder next to where you ran
 This sample verifies that clicking the `English` language link on
 [wikipedia.org](https://www.wikipedia.org) navigates to the English welcome page.
 
-Because `tasks` is mounted into the container, the file is available immediately.
-Confirm the agent sees it:
+Because `import` is mounted into the container, the file is available at
+`/agent/import` immediately. Use `manage-test-files add` to move it into the
+agent's `tasks` folder:
+
+```bash
+docker exec -it waterwheel-agent manage-test-files add /agent/import/test-wikipedia-english.md
+```
+
+Then confirm the agent sees it:
 
 ```bash
 docker exec -it waterwheel-agent manage-test-files list
@@ -168,9 +176,10 @@ docker exec -it waterwheel-agent manage-test-files list
 The `list` command should show `test-wikipedia-english.md`.
 
 :::tip[Managing tasks later]
-Drop more `.md` files into your `tasks` folder to add them, or remove files from
-it to drop them. You can also manage tasks with `manage-test-files add`,
-`manage-test-files delete`, and `manage-test-files clear`. See the
+Drop more files into your `import` folder on the host, then move them into the
+container with the management commands. Use `manage-test-files add` for `.md`
+task files, and `preset-context flow` to import a flow file. You can also remove
+tasks with `manage-test-files delete` and `manage-test-files clear`. See the
 [Usage](./usage#manage-test-files-command) guide for the full command reference.
 :::
 
@@ -209,7 +218,7 @@ docker exec -it waterwheel-agent get-failure-detail
 
 ## Uninstallation
 
-If you need to change your AI provider, uninstall the agent and reconfigure it from step 1. Your `tasks` and `outputs`
+If you need to change your AI provider, uninstall the agent and reconfigure it from step 1. Your `import` and `outputs`
 folders on the host are untouched.
 
 ```bash
