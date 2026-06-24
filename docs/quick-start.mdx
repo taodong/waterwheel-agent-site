@@ -21,9 +21,18 @@ differ between operating systems. Commands such as `config-agent`,
 as a single code block.
 :::
 
+## What Is Shipped
+
+The Waterwheel agent is shipped as a **Docker image** — a self-contained, read-only package that bundles the agent together with everything it needs to run (runtime, browser, and dependencies). Shipping as an image gives you:
+
+- **Platform independent** — the same image runs identically on macOS, Linux, and Windows, so there is nothing OS-specific to install or configure.
+- **Easy integration** — a single `docker run` command pulls and starts the agent, and the image runs on any container platform (local Docker, CI runners, or container services like Kubernetes), so it slots into automated QA pipelines without environment-specific setup.
+- **Your data stays in your environment** — the agent runs entirely within your own infrastructure, and your test files and results never leave it: there is no Waterwheel-hosted backend. The only data sent externally is to the LLM provider you configure, and with a self-hosted `Ollama` model even that stays inside your environment.
+
 ## Prerequisites
 
 ### Docker Desktop Application
+The Waterwheel agent is shipped as a Docker image, so you need a container runtime to pull and run it.
 Install **Docker Desktop** for your machine from
 [docker.com/get-started](https://www.docker.com/get-started/) and make sure it is
 running before you continue.
@@ -35,6 +44,17 @@ Currently supported AI providers include `Anthropic`, `OpenAI`, `Gemini`, `DeepS
 :::note[Gemma 4 Support]
 For simple QA tasks, you can use `Ollama`-hosted `Gemma 4`.
 When using `Gemma 4`, you can use any non-empty text as the API key.
+:::
+
+:::info[About your API key's safety]
+The agent uses your key the same way any standard LLM client does — as the
+credential on requests to the provider you configure. It is read from an
+environment variable inside your own container and sent only to that provider's
+API; there is no Waterwheel-hosted service that receives it. You stay in full
+control: use a scoped, spend-limited key, monitor the container's outbound
+traffic, and rotate or revoke the key at any time. If you simply want to inspect
+what's inside the image before committing a real key, you can start the container
+with any non-empty text as the API key and look around first.
 :::
 
 ## 1. Set Your API Key
