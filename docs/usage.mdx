@@ -9,90 +9,26 @@ The container provides the following commands to help you run web tests.
 
 | Command                    | Usage                                         |
 |----------------------------|----------------------------------------------------------|
-| [`run-qa`](#run-qa-command)                   | Run QA tasks                 |
-| [`stop-qa`](#stop-qa-command)                  | Stop current QA run                   |
 | [`check-test-result`](#check-test-result-command)        | Check test results        |
-| [`get-failure-detail`](#get-failure-detail-command)       | Get failure details         |
 | [`config-agent`](#config-agent-command)             | Configure AI provider, browser permissions, and access to a test website deployed on the host machine |
+| [`config-ai-provider`](#config-ai-provider-command)         | Apply an AI provider and model without interactive prompts |
+| [`display-ai-config`](#display-ai-config-command)          | Show the effective AI provider, model, and token mode |
+| [`enable-test-on-host`](#enable-test-on-host-command)        | Enable testing against a web app on the host machine |
+| [`get-failure-detail`](#get-failure-detail-command)       | Get failure details         |
 | [`manage-global-constants`](#manage-global-constants-command)  | Manage global constants    |
 | [`manage-test-files`](#manage-test-files-command)        | Manage markdown test task files |
 | [`preset-context`](#preset-context-command)           | Manage preset context variables and test flow |
+| [`reset-test-config`](#reset-test-config-command)          | Delete test tasks and/or instruction files to reset state |
+| [`run-qa`](#run-qa-command)                   | Run QA tasks                 |
+| [`set-domain-permission`](#set-domain-permission-command)      | Set the browser domain allowlist from a domain list |
+| [`stop-qa`](#stop-qa-command)                  | Stop current QA run                   |
+| [`upload-instruction-file`](#upload-instruction-file-command)    | Upload an instruction or config file into the agent |
+| [`upload-test-task`](#upload-test-task-command)           | Upload a markdown test task into the agent |
 
 To run these commands on your host machine, prepend `docker exec -it waterwheel-agent`.
 
 ```shell title="Execute run-qa on host machine"
 docker exec -it waterwheel-agent run-qa
-```
-
-## `run-qa` Command
-<Since version="1.0.0" />
-
-`run-qa` executes all tests found under the `/agent/tasks` folder. It performs the following steps in order:
-
-1. Clear outputs from any previous run
-2. Restart the preinstalled MCP servers and reload any changed permissions
-3. Start the AI agent to run tests and write results
-
-```shell
-run-qa
-```
-
-### Dry Run Mode
-
-`run-qa` supports a `--dry-run` flag to help identify configuration issues without making any API calls.
-
-```shell
-run-qa --dry-run
-```
-
-In dry run mode, the command performs the following steps in order:
-
-1. Clear outputs from any previous run
-2. Restart the preinstalled MCP servers and reload any changed permissions
-3. Start the AI agent to print the active configuration and prompts
-4. Parse all test files under `/agent/tasks` and print a test summary
-
-### Inputs
-
-The agent requires at least one test file under `/agent/tasks`. All test files must be text files with the `.md` extension. 
-
-```markdown title="Sample Test Task"
-1. Navigate to https://www.wikipedia.org
-2. Click the English language link on the Wikipedia main page.
-3. Confirm the banner text "Welcome to Wikipedia" is displayed on the English Wikipedia homepage.
-```
-
-See the [Manage Test Tasks](./test-task-manual) section for full details on authoring test files.
-
-:::info[Only file extension matters]
-There is no required Markdown format for test file structure. Tasks are executed as long as the file extension is `.md`.
-:::
-
-### Outputs
-
-After each run, the agent writes the following files to `/agent/outputs`.
-
-| File | Description |
-|---|---|
-| `agent.log` | AI agent execution log |
-| `api-log.json` | LLM API call records and token usage. Only written when `ENABLE_API_LOGGING` is `true` |
-| `test-results.json` | Summary of all test results for the run |
-| `test-context.json` | All context values stored at the end of the run, such as AI-generated usernames and passwords |
-| `<test-name>_log.json` | Per-test step log recording all AI-decided steps and tool calls |
-| `<test-name>_audit.json` | Per-test audit log recording the tool calls the AI actually performed |
-| `playwright.log` | Playwright MCP stdout log |
-| `playwright.err` | Playwright MCP stderr log |
-| `firewall.log` | Playwright firewall log. Only written when `FIREWALL_DEBUG` is `true` |
-| `email-mcp.log` | Email MCP stdout log |
-| `email-mcp.err` | Email MCP stderr log |
-
-## `stop-qa` Command
-<Since version="1.1.0" />
-
-`stop-qa` stops the currently tracked `run-qa` process tree, including the launched agent subprocess, if one exists. Because there can only be one `run-qa` process running in a container, `stop-qa` lets you stop the existing `run-qa` process in that container.
-
-```shell
-stop-qa
 ```
 
 ## `check-test-result` Command
@@ -111,43 +47,6 @@ check-test-result
 | Test results exist | The exit condition summarizing the run outcome |
 | `test-results.json` missing, `agent.log` missing | `ℹ️  No test results found.` |
 | `test-results.json` missing, `agent.log` exists | `ℹ️  No test results found.` followed by the full content of `agent.log` |
-
-## `get-failure-detail` Command
-<Since version="1.1.0" />
-
-When a test failure is reported by a previous run, this command prints a full diagnostic report for the first failed test found in `$AGENT_PATH/outputs/test-results.json`. If a test run is still in progress, it reports that instead. It is another helper command for code agent integration.
-
-```shell
-get-failure-detail [-d]
-```
-
-### Options
-| Option | Description |
-| --- | --- |
-| `-d` | Include API log (`/agent/outputs/api-log.json`) at the end of the report if file exists|
-
-### Output when a failed test is found
-
-Each section is printed in order. Missing files are reported inline and do not abort the output.
-
-| Section | Source |
-| --- | --- |
-| **Failed Test Summary** | The failed test JSON object from `test-results.json` |
-| **Test Detail** | `/agent/tasks/<test-file>` |
-| **Test Steps** | `/agent/outputs/<test-file-stem>_log.json` |
-| **Test Context** | `/agent/outputs/test-context.json` |
-| **Agent Log** | `/agent/outputs/agent.log` |
-| **API Log** _(only with `-d`, only if file exists)_ | `/agent/outputs/api-log.json` |
-
-### Output when no failure
-
-| Condition | Output |
-| --- | --- |
-| `run-qa` is currently active | A message indicating testing is in progress, including the orchestrator PID |
-| `test-results.json` missing, `agent.log` missing | `ℹ️  No test results found.` |
-| `test-results.json` missing, `agent.log` exists | `ℹ️  No test results found.` followed by the full content of `agent.log` |
-| Run did not complete | `⚠️  Run did not complete:` followed by the exit condition |
-| Test results exist, no failed tests | `✅ No failed tests found in test results.` |
 
 ## `config-agent` Command
 <Since version="1.1.0" />
@@ -198,6 +97,121 @@ See the [URL Permissions](./mcp-guide#url-permissions) section for full details 
 
 ### Option 3 — Test Web App on Host
 If the website under test is hosted on your local machine, for example at http://localhost:8080, enable this option so the agent in the Docker container can interact with it.
+
+## `config-ai-provider` Command
+<Since version="1.3.0" />
+
+`config-ai-provider` applies an AI provider and model without the interactive prompts of `config-agent`. It is the scripting-friendly way to set up the AI provider, for example in CI or a one-off setup command.
+
+```shell
+config-ai-provider --provider <provider> --model <model> --mode <default|efficiency>
+```
+
+### Options
+| Option | Description |
+| --- | --- |
+| `--provider <value>` | AI provider to use (for example, `anthropic` or `openai`). Must match the provider of your AI API key |
+| `--model <value>` | Model name to use |
+| `--mode <value>` | `default` for the standard prompt mode, or `efficiency` for the token-efficiency mode |
+
+### Behavior
+- The provider must match the provider of your AI API key.
+- Provider locking applies: once a provider is configured, switching to a different provider requires a new container.
+- For provider-specific extras (such as a custom base URL or a localized system prompt), use the interactive [`config-agent`](#config-agent-command) command instead.
+
+### Examples
+```shell
+# Apply Anthropic default mode with an explicit model
+config-ai-provider --provider anthropic --model claude-sonnet-4-5 --mode default
+
+# Apply OpenAI token-efficiency mode
+config-ai-provider --provider openai --model gpt-5.4 --mode efficiency
+```
+
+## `display-ai-config` Command
+<Since version="1.3.0" />
+
+`display-ai-config` prints the effective AI runtime settings as JSON. Use it to confirm which provider, model, and token mode the agent will use before running tests.
+
+```shell
+display-ai-config
+```
+
+### Output
+
+Returns a JSON object with exactly these keys:
+
+| Key | Description |
+| --- | --- |
+| `aiProvider` | The active AI provider |
+| `aiModel` | The active model |
+| `tokenMode` | `default` for the standard prompt mode, or `efficiency` for the token-efficiency mode. Empty when not configured |
+
+### Example
+```shell
+display-ai-config
+```
+
+## `enable-test-on-host` Command
+<Since version="1.3.0" />
+
+`enable-test-on-host` enables testing against a web app deployed on your host machine, mirroring the **Test web app on host** action in [`config-agent`](#config-agent-command). Use it when the website under test is hosted on your local machine, for example at `http://localhost:8080`, so the agent inside the Docker container can reach it.
+
+When enabled, the command:
+
+- Instructs the agent to rewrite `localhost` to `host.docker.internal` during test runs.
+- Rewrites `localhost` to `host.docker.internal` in your domain allowlist.
+- Rewrites every `localhost` value in your global constants to `host.docker.internal`.
+
+```shell
+enable-test-on-host
+```
+
+### Behavior
+- Re-running is idempotent: host testing is not enabled twice if it is already enabled.
+- The domain allowlist and global constants are only rewritten if they exist and contain `localhost`.
+
+### Example
+```shell
+enable-test-on-host
+```
+
+## `get-failure-detail` Command
+<Since version="1.1.0" />
+
+When a test failure is reported by a previous run, this command prints a full diagnostic report for the first failed test found in `$AGENT_PATH/outputs/test-results.json`. If a test run is still in progress, it reports that instead. It is another helper command for code agent integration.
+
+```shell
+get-failure-detail [-d]
+```
+
+### Options
+| Option | Description |
+| --- | --- |
+| `-d` | Include API log (`/agent/outputs/api-log.json`) at the end of the report if file exists|
+
+### Output when a failed test is found
+
+Each section is printed in order. Missing files are reported inline and do not abort the output.
+
+| Section | Source |
+| --- | --- |
+| **Failed Test Summary** | The failed test JSON object from `test-results.json` |
+| **Test Detail** | `/agent/tasks/<test-file>` |
+| **Test Steps** | `/agent/outputs/<test-file-stem>_log.json` |
+| **Test Context** | `/agent/outputs/test-context.json` |
+| **Agent Log** | `/agent/outputs/agent.log` |
+| **API Log** _(only with `-d`, only if file exists)_ | `/agent/outputs/api-log.json` |
+
+### Output when no failure
+
+| Condition | Output |
+| --- | --- |
+| `run-qa` is currently active | A message indicating testing is in progress, including the orchestrator PID |
+| `test-results.json` missing, `agent.log` missing | `ℹ️  No test results found.` |
+| `test-results.json` missing, `agent.log` exists | `ℹ️  No test results found.` followed by the full content of `agent.log` |
+| Run did not complete | `⚠️  Run did not complete:` followed by the exit condition |
+| Test results exist, no failed tests | `✅ No failed tests found in test results.` |
 
 ## `manage-global-constants` Command
 <Since version="1.1.0" />
@@ -359,3 +373,186 @@ preset-context flow list
 - The flow file path is resolved inside the container, not on the host machine. Make sure the file is reachable from a mapped volume (for example, under `/agent`) before referencing it.
 - Unknown key names in `delete` print a warning but do not cause an error; any found keys are still deleted.
 :::
+
+## `reset-test-config` Command
+<Since version="1.3.0" />
+
+`reset-test-config` deletes test task files and/or instruction files to return the agent to a clean state.
+
+```shell
+reset-test-config [-t] [-i]
+```
+
+### Options
+| Option | Description |
+| --- | --- |
+| `-t` | Delete all markdown test task files |
+| `-i` | Delete all instruction files except `email-permissions.yaml` |
+
+### Behavior
+- When neither `-t` nor `-i` is provided, **both** operations are performed.
+- `email-permissions.yaml` is always preserved when resetting instructions.
+- Resetting instructions also turns off host testing, keeping the agent's reported state consistent.
+- Missing directories are reported but do not cause an error.
+
+### Examples
+```shell
+# Reset both tasks and instructions
+reset-test-config
+
+# Reset task files only
+reset-test-config -t
+
+# Reset instruction files only
+reset-test-config -i
+```
+
+## `run-qa` Command
+<Since version="1.0.0" />
+
+`run-qa` executes all tests found under the `/agent/tasks` folder. It performs the following steps in order:
+
+1. Clear outputs from any previous run
+2. Restart the preinstalled MCP servers and reload any changed permissions
+3. Start the AI agent to run tests and write results
+
+```shell
+run-qa
+```
+
+### Dry Run Mode
+
+`run-qa` supports a `--dry-run` flag to help identify configuration issues without making any API calls.
+
+```shell
+run-qa --dry-run
+```
+
+In dry run mode, the command performs the following steps in order:
+
+1. Clear outputs from any previous run
+2. Restart the preinstalled MCP servers and reload any changed permissions
+3. Start the AI agent to print the active configuration and prompts
+4. Parse all test files under `/agent/tasks` and print a test summary
+
+### Inputs
+
+The agent requires at least one test file under `/agent/tasks`. All test files must be text files with the `.md` extension. 
+
+```markdown title="Sample Test Task"
+1. Navigate to https://www.wikipedia.org
+2. Click the English language link on the Wikipedia main page.
+3. Confirm the banner text "Welcome to Wikipedia" is displayed on the English Wikipedia homepage.
+```
+
+See the [Manage Test Tasks](./test-task-manual) section for full details on authoring test files.
+
+:::info[Only file extension matters]
+There is no required Markdown format for test file structure. Tasks are executed as long as the file extension is `.md`.
+:::
+
+### Outputs
+
+After each run, the agent writes the following files to `/agent/outputs`.
+
+| File | Description |
+|---|---|
+| `agent.log` | AI agent execution log |
+| `api-log.json` | LLM API call records and token usage. Only written when `ENABLE_API_LOGGING` is `true` |
+| `test-results.json` | Summary of all test results for the run |
+| `test-context.json` | All context values stored at the end of the run, such as AI-generated usernames and passwords |
+| `<test-name>_log.json` | Per-test step log recording all AI-decided steps and tool calls |
+| `<test-name>_audit.json` | Per-test audit log recording the tool calls the AI actually performed |
+| `playwright.log` | Playwright MCP stdout log |
+| `playwright.err` | Playwright MCP stderr log |
+| `firewall.log` | Playwright firewall log. Only written when `FIREWALL_DEBUG` is `true` |
+| `email-mcp.log` | Email MCP stdout log |
+| `email-mcp.err` | Email MCP stderr log |
+
+## `set-domain-permission` Command
+<Since version="1.3.0" />
+
+`set-domain-permission` generates the browser domain allowlist from a comma-delimited list of domains. The agent can only navigate to whitelisted domains; if it tries to reach any other URL, the test fails immediately. This is the scripting-friendly alternative to configuring domain permissions through [`config-agent`](#config-agent-command).
+
+```shell
+set-domain-permission [-l] <domain1,domain2,...>
+```
+
+### Options
+| Option | Description |
+| --- | --- |
+| `-l` | Rewrite every `localhost` in the domains to `host.docker.internal`, useful when targeting a local dev server from inside Docker |
+
+### Behavior
+- Domains are separated by commas. Quote any entry containing shell-special characters, for example `"https://*.wikipedia.org"`.
+- Leading and trailing whitespace around each entry is trimmed.
+- Empty entries are ignored.
+- The allowlist is overwritten on each run.
+
+### Examples
+```shell
+# Set the allowlist from a list of domains
+set-domain-permission https://www.google.com,"https://*.wikipedia.org","http://localhost:8080"
+
+# Rewrite localhost to host.docker.internal with -l
+set-domain-permission -l "http://localhost:8080","http://localhost:8025"
+```
+
+See the [URL Permissions](./mcp-guide#url-permissions) section for full details on configuring allowed domains.
+
+## `stop-qa` Command
+<Since version="1.1.0" />
+
+`stop-qa` stops the currently tracked `run-qa` process tree, including the launched agent subprocess, if one exists. Because there can only be one `run-qa` process running in a container, `stop-qa` lets you stop the existing `run-qa` process in that container.
+
+```shell
+stop-qa
+```
+
+## `upload-instruction-file` Command
+<Since version="1.3.0" />
+
+`upload-instruction-file` creates or replaces an instruction or config file (for example `allowed-domains.yaml`, `email-permissions.yaml`, or `extra-instructions.md`) using content read from stdin. This lets you push instruction files into the agent without editing files in place.
+
+```shell
+upload-instruction-file <filename>
+```
+
+### Behavior
+- Content is read from stdin and written to the named instruction file.
+- Missing parent directories are created automatically.
+- An existing file is replaced, and a warning is printed when it is.
+
+### Examples
+```shell
+# Create or replace allowed-domains.yaml from stdin
+printf 'allowed:\n  - http://host.docker.internal:8080\n' | \
+  upload-instruction-file allowed-domains.yaml
+
+# Pipe a local file into the instructions folder
+cat ./extra-instructions.md | upload-instruction-file extra-instructions.md
+```
+
+## `upload-test-task` Command
+<Since version="1.3.0" />
+
+`upload-test-task` creates or replaces a markdown test task using content read from stdin. Only markdown files are accepted — the filename must end with `.md`.
+
+```shell
+upload-test-task <filename.md>
+```
+
+### Behavior
+- Content is read from stdin and written to the named task file.
+- The filename must end with `.md`, otherwise the command fails.
+- Missing parent directories are created automatically.
+- An existing file is replaced, and a warning is printed when it is.
+
+### Examples
+```shell
+# Create or replace a test task from stdin
+printf '# Login test\n' | upload-test-task login.md
+
+# Pipe a local file into the tasks folder
+cat ./checkout.md | upload-test-task checkout.md
+```

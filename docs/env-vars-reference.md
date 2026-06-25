@@ -26,7 +26,7 @@ Variable | Description | Default
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `AI_PROVIDER` | AI provider name: `anthropic`, `openai`, `google` / `google-gemini` / `gemini`, `deepseek`, `gemma` | `anthropic` |
+| `AI_PROVIDER` | AI provider name: `anthropic`, `openai`, `gemini`, `deepseek`, `gemma` | `anthropic` |
 | `AI_MODEL` | AI model name | — |
 | `AI_API_KEY` | AI API key. For `gemma`, set to any non-empty string — Ollama does not validate it. | — |
 | `AI_BASE_URL` | Ollama server base URL. Required when `AI_PROVIDER=gemma` (e.g. `http://localhost:11434`). Ignored for all other providers. | — |
