@@ -17,6 +17,7 @@ The container provides the following commands to help you run web tests.
 | [`get-failure-detail`](#get-failure-detail-command)       | Get failure details         |
 | [`manage-global-constants`](#manage-global-constants-command)  | Manage global constants    |
 | [`manage-test-files`](#manage-test-files-command)        | Manage markdown test task files |
+| [`output-context-variables`](#output-context-variables-command)  | Output user-scoped context values from the latest run |
 | [`preset-context`](#preset-context-command)           | Manage preset context variables and test flow |
 | [`reset-test-config`](#reset-test-config-command)          | Delete test tasks and/or instruction files to reset state |
 | [`run-qa`](#run-qa-command)                   | Run QA tasks                 |
@@ -303,6 +304,41 @@ manage-test-files clear
 - `delete` is best effort: invalid selectors print warnings while valid selectors are still deleted.
 - Source paths passed to `add` are resolved inside the container, not on the host machine. Make sure the files are reachable from a mapped volume (for example, under `/agent`) before referencing them.
 :::
+
+## `output-context-variables` Command
+<Since version="1.3.0" />
+
+`output-context-variables` prints context values produced by the latest run as a flat JSON object. Tests store values such as AI-generated usernames and passwords in `/agent/outputs/test-context.json`; this command extracts those entries so you can reuse them outside the container (for example, to log in with a freshly registered account).
+
+```shell
+output-context-variables 
+```
+
+### Options
+| Option | Description |
+| --- | --- |
+| `-h`, `--help`, `h`, `help` | Show usage help |
+
+### Errors
+
+| Condition | Result |
+| --- | --- |
+| `run-qa` is currently active | Prints an error that exporting context variables while testing is in progress isn't supported, and exits non-zero |
+| `test-context.json` is missing | Prints an error that no `test-context.json` was found, and exits non-zero |
+
+### Example
+`output-context-variables` prints:
+
+```json
+{
+  "testuser": {
+    "username": "test.user21",
+    "password": "123456789Ab#",
+    "email": "test.user21@enduser1.com"
+  },
+  "tag": "news"
+}
+```
 
 ## `preset-context` Command
 <Since version="1.2.0" />
