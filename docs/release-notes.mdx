@@ -11,17 +11,49 @@ The Waterwheel agent is distributed as a pre-built Docker image, free to use.
 **Docker image:** [taojdcn/duotail-waterwheel](https://hub.docker.com/r/taojdcn/duotail-waterwheel)
 
 :::tip[Use the latest release]
-We recommend always running the latest version, **`1.2.0`**.
+We recommend always running the latest version, **`1.3.0`**.
 
 ```shell
-docker pull taojdcn/duotail-waterwheel:1.2.0
+docker pull taojdcn/duotail-waterwheel:1.3.0
 ```
 :::
 
-## 1.2.0 — latest
+## 1.3.0 — latest
 
-The current release. It builds on `1.1.0` with richer test configuration and new
-helper commands.
+The current release. It makes every part of the agent scriptable and introduces the
+[Waterwheel skills](./agent-loops) for pairing the agent with a code agent in a
+nested test-and-fix loop.
+
+- **Agent loops & skills** — a set of Claude Code skills that install, configure, and
+  drive the agent automatically, enabling an autonomous, test-driven web development
+  workflow. See the new [Agent Loops](./agent-loops) guide.
+- **Non-interactive setup** — configure the agent from scripts and CI without the
+  interactive prompts of `config-agent`:
+  - [`config-ai-provider`](./usage#config-ai-provider-command) — apply an AI provider
+    and model directly.
+  - [`set-domain-permission`](./usage#set-domain-permission-command) — generate the
+    browser domain allowlist from a comma-delimited list.
+  - [`enable-test-on-host`](./usage#enable-test-on-host-command) — enable testing
+    against a web app deployed on the host machine.
+  - [`display-ai-config`](./usage#display-ai-config-command) — print the effective
+    provider, model, and token mode as JSON.
+- **Programmatic test & instruction management:**
+  - [`upload-test-task`](./usage#upload-test-task-command) and
+    [`upload-instruction-file`](./usage#upload-instruction-file-command) — create or
+    replace markdown tasks and instruction/config files from stdin.
+  - [`reset-test-config`](./usage#reset-test-config-command) — delete test tasks
+    and/or instruction files to return to a clean state.
+  - [`output-context-variables`](./usage#output-context-variables-command) — export
+    context values produced by the latest run as flat JSON for reuse outside the
+    container.
+
+```shell
+docker pull taojdcn/duotail-waterwheel:1.3.0
+```
+
+## 1.2.0
+
+Builds on `1.1.0` with richer test configuration and new helper commands.
 
 - **`preset-context.json`** — a single file to manage per-run context variables
   and to configure the **test flow** (execution order and dependencies between

@@ -86,7 +86,12 @@ const config: Config = {
           position: 'right',
         },
         {
-          href: 'https://github.com/taodong/waterwheel-agent-site',
+          href: 'https://hub.docker.com/r/taojdcn/duotail-waterwheel',
+          label: 'Docker',
+          position: 'right',
+        },
+        {
+          href: 'https://github.com/taodong/duotail-greenhouse',
           label: 'GitHub',
           position: 'right',
         },
@@ -121,8 +126,12 @@ const config: Config = {
           title: 'More',
           items: [
             {
+              label: 'Docker',
+              href: 'https://hub.docker.com/r/taojdcn/duotail-waterwheel',
+            },
+            {
               label: 'GitHub',
-              href: 'https://github.com/taodong/waterwheel-agent-site',
+              href: 'https://github.com/taodong/duotail-greenhouse',
             },
           ],
         },

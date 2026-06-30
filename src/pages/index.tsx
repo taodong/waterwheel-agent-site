@@ -26,6 +26,8 @@ const HERO_BADGES = [
   'Pennies per test case',
   'Any major AI provider',
   'Runs anywhere via Docker',
+  'Nested agent loops',
+  'Fully automated web development',
 ];
 
 function HomepageHeader() {
@@ -47,8 +49,8 @@ function HomepageHeader() {
           </Link>
           <Link
             className={clsx('button button--lg', styles.heroGhostButton)}
-            to="/docs/benchmark-report">
-            See the benchmarks
+            to="/docs/agent-loops">
+            Explore the Agent Loops
           </Link>
         </div>
         <ul className={styles.heroBadges}>
@@ -138,21 +140,53 @@ function CallToAction() {
         <Heading as="h2" className={styles.sectionTitle}>
           Skip the QA bottleneck
         </Heading>
-        <p className={styles.sectionSubtitle}>
-          Pull the Docker image, point it at your site, and ship with
-          confidence. Free to run on your own machine.
-        </p>
-        <div className={styles.ctaCode}>
-          <CodeBlock language="bash">
-            docker pull taojdcn/duotail-waterwheel:1.2.0
-          </CodeBlock>
-        </div>
-        <div className={styles.buttons}>
-          <Link
-            className="button button--primary button--lg"
-            to="/docs/quick-start">
-            Read the Quick Start
-          </Link>
+        <div className={clsx('row', styles.ctaRow)}>
+          <div className="col col--6">
+            <div className={styles.ctaCard}>
+              <Heading as="h3" className={styles.ctaCardTitle}>
+                Run it yourself
+              </Heading>
+              <p className={styles.ctaCardText}>
+                Pull the Docker image, point it at your site, and ship with
+                confidence. Free to run on your own machine.
+              </p>
+              <div className={styles.ctaCode}>
+                <CodeBlock language="bash">
+                  docker pull taojdcn/duotail-waterwheel:1.3.0
+                </CodeBlock>
+              </div>
+              <div className={styles.buttons}>
+                <Link
+                  className="button button--primary button--lg"
+                  to="/docs/quick-start">
+                  Read the Quick Start
+                </Link>
+              </div>
+            </div>
+          </div>
+          <div className="col col--6">
+            <div className={styles.ctaCard}>
+              <Heading as="h3" className={styles.ctaCardTitle}>
+                Let your code agent drive
+              </Heading>
+              <p className={styles.ctaCardText}>
+                Add the skills to your code agent to run the full test-and-fix
+                loop automatically.
+              </p>
+              <div className={styles.ctaCode}>
+                <CodeBlock language="bash">
+                  npx skills add taodong/duotail-waterwheel-skills --skill '*'
+                </CodeBlock>
+              </div>
+              <div className={styles.buttons}>
+                <Link
+                  className="button button--secondary button--lg"
+                  to="/docs/agent-loops">
+                  Explore Agent Loops
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

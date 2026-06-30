@@ -65,6 +65,17 @@ export const FeatureList: FeatureItem[] = [
       </>
     ),
   },
+  {
+    title: 'Nested Agent Loops',
+    Svg: require('@site/static/img/feature_agent_loops.svg').default,
+    description: (
+      <>
+        Pair the agent with a code agent to wrap an autonomous browser test
+        loop in a test-and-fix coding loop. {' '}
+        <a href="/docs/agent-loops">Agent Loops</a>
+      </>
+    ),
+  },
 ];
 
 function Feature({title, Svg, description}: FeatureItem) {
