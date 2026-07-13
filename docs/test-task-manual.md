@@ -312,7 +312,7 @@ Flow configuration:
 | `customFields` | Present if custom fields were defined |
 
 ## Pass Data Between Tests
-Waterwheel gives a test access to data from three layers, so you rarely need to hard-code values into a test file. **Global context** supplies static, shared values (base URLs, tenant IDs) that are injected into every test; **preset context** seeds key/value pairs before the run that a test can read or override; and **runtime context** carries values that one test discovers and stores via `context-manager.set` for later tests to consume. Because a test references its inputs by name rather than by value, the same test file can run unchanged across environments — only the source of each variable changes.  
+Waterwheel gives a test access to data from three layers, so you rarely need to hard-code values into a test file. **Global context** supplies static, shared values (base URLs, tenant IDs) that are injected into every test; **preset context** seeds key/value pairs before the run that a test can read or override; and **runtime context** carries values that one test discovers and saves for later tests to consume. Because a test references its inputs by name rather than by value, the same test file can run unchanged across environments — only the source of each variable changes.  
 
 The example below shows this in action: the `test_new_feature.md` file is byte-for-byte identical in Dev and QA, yet in Dev its credentials come from a static preset, while in QA they are generated at runtime by a prerequisite user-creation test.
 
@@ -342,7 +342,7 @@ Use uppercase variable names in `global-context.json` to avoid naming conflicts 
 
 #### `data` — seed values before any task runs
 
-Key-value pairs under `data` are stored in `context-manager` before the first task runs. Unlike global context, preset values are not injected into the system prompt — they live in the context store and are read or overwritten by the agent via the `context-manager` tool. A test can override preset values for the same key.
+Key-value pairs under `data` are loaded into the runtime context store before the first task runs. Unlike global context, preset values are not injected into the system prompt. A test can read or override preset values that use the same key.
 
 Values support any JSON type: string, number, boolean, object, array.
 
@@ -373,23 +373,17 @@ This is useful to make tests reusable across different configurations. For examp
 
 ### C. Runtime Context — values discovered during a test and reused by later tests
 
-Runtime sharing uses the local `context-manager` tool. Values remain available to all subsequent tests in the same run until end-of-run cleanup.
+Runtime sharing uses the runtime context store. Values remain available to all subsequent tests in the same run.
 
-Recommended pattern:
+For writes, use natural-language instructions such as "save X to the context", "store X in the (test) context", "put X in the context", or "remember X".
 
-1. The producer test discovers a value.
-2. The producer test stores it using `context-manager` action `set`.
-3. The consumer test reads it using `context-manager` action `get` or `summary`.
+To write a value, describe what should be saved. For example:
 
-Both reading and writing runtime context variables must be explicitly instructed in the test task body.
-
-To write a value, reference `context-manager` in the test prompt. For example:
-
-> _"Generate a username, then use `context-manager.set` to save it as `username`."_
+> _"Generate a username, then save it to the context as `username`."_
 
 To read a value, reference it with a `context.` prefix. For example:
 
-> _"Fill the username field with `context.username`."_
+> _"Fill the username field with `${context.username}`."_
 
 :::note
 Runtime context variable names are case-sensitive.
@@ -405,7 +399,7 @@ name: Create Order
 id: 10
 ---
 # Create Order
-Create an order, then store `order_id` using `context-manager set`.
+Create an order, then save `order_id` to context.
 ```
 
 ```md title="Consumer"
@@ -414,7 +408,7 @@ name: Cancel Order
 id: 11
 ---
 # Cancel Order
-Read `order_id` from `context-manager` and cancel that order.
+Read `context.order_id` and cancel that order.
 ```
 
 ```json title="preset-context.json"
