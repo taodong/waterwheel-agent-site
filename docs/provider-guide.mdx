@@ -45,10 +45,6 @@ MAX_ITERATIONS=100
 MAXIMUM_RESTRICTED_TOOL_USAGE=3
 ```
 
-### Observation
-1. DeepSeek occasionally has issues following our default system prompt, which results in higher token consumption. We mitigate this by using a Chinese version included in the installation package.
-   You can rename the provided `system-prompt-cn.md` to `system.prompt.md` and place it under `/agent/config`, replacing the existing English prompt file.
-
 ## OpenAI
 We briefly tested both `gpt-5.4` and `gpt-5.5`. We did not spend enough time tuning prompts to make them work reliably, but we expect `gpt-5.4` to work with the right prompts.
 
@@ -67,7 +63,7 @@ MAX_ITERATIONS=100
 MAXIMUM_RESTRICTED_TOOL_USAGE=3
 ```
 
-### Observation
+### Observation (May 2026)
 1. GPT models have difficulty distinguishing a `link` from its `label` when a click is needed. Possible remedies are:
    - Add an extra instruction to regulate this behavior.
    - Update any `click` instructions in the default system prompt to eliminate potentially misleading prompts introduced by the tool.
@@ -97,7 +93,7 @@ MAX_ITERATIONS=100
 MAXIMUM_RESTRICTED_TOOL_USAGE=3
 ```
 
-### Observation
+### Observation (May 2026)
 1. Possibly due to our low spend tier, our tests often fail with a 503 error (`This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.`). Our agent does not have a recovery mechanism for this situation. Please be cautious if you plan to run a large test suite.
 
 ## Gemma 4
@@ -126,5 +122,5 @@ MAX_ITERATIONS=100
 MAXIMUM_RESTRICTED_TOOL_USAGE=5
 ```
 
-### Observation
+### Observation (June 2026)
 1. The biggest challenge with `Gemma 4` is its high hallucination rate. For real-world testing, task instructions must be very specific, for example: fill the `Username` input field (id: `username`) with `abcd`. We recommend using it for simple (or chained simple) test tasks.
