@@ -12,9 +12,13 @@ The container provides the following commands to help you run web tests.
 | [`check-test-result`](#check-test-result-command)        | Check test results        |
 | [`config-agent`](#config-agent-command)             | Configure AI provider, browser permissions, and access to a test website deployed on the host machine |
 | [`config-ai-provider`](#config-ai-provider-command)         | Apply an AI provider and model without interactive prompts |
+| [`delete-builtin-skills`](#delete-builtin-skills-command)    | Delete built-in skill folders by name |
+| [`delete-test-skills`](#delete-test-skills-command)        | Delete user-loaded skills by name or all |
 | [`display-ai-config`](#display-ai-config-command)          | Show the effective AI provider, model, and token mode |
+| [`display-test-skills`](#display-test-skills-command)        | List installed skills or print a skill's `SKILL.md` |
 | [`enable-test-on-host`](#enable-test-on-host-command)        | Enable testing against a web app on the host machine |
 | [`get-failure-detail`](#get-failure-detail-command)       | Get failure details         |
+| [`load-test-skills`](#load-test-skills-command)          | Load a skill into the agent as a `SKILL.md` |
 | [`manage-global-constants`](#manage-global-constants-command)  | Manage global constants    |
 | [`manage-test-files`](#manage-test-files-command)        | Manage markdown test task files |
 | [`output-context-variables`](#output-context-variables-command)  | Output user-scoped context values from the latest run |
@@ -129,6 +133,85 @@ config-ai-provider --provider anthropic --model claude-sonnet-4-5 --mode default
 config-ai-provider --provider openai --model gpt-5.4 --mode efficiency
 ```
 
+## `delete-builtin-skills` Command
+<Since version="1.4.0" />
+
+`delete-builtin-skills` removes built-in skill folders that ship with the image, under `$AGENT_PATH/builtin-skills`. It deletes a comma-delimited list of skill names (`-n`), removing each exactly-matched folder. Unlike [`delete-test-skills`](#delete-test-skills-command), there is **no `-a`/`--all` option** — built-in skills can only be removed by exact name. A leading `ww:` prefix on a name is ignored, so `ww:foo` targets the folder `foo`.
+
+```shell
+delete-builtin-skills [-ap <agent-path>] -n <name1,name2,...>
+```
+
+### Options
+| Option | Description |
+| --- | --- |
+| `-n`, `--names <names>` | Comma-delimited built-in skill folder names to delete |
+| `-ap <path>` | Override the agent path (default: `/agent`) |
+| `-h`, `--help`, `h`, `help` | Show usage help |
+
+### Behavior
+- `-n` is required; there is no bulk-delete option.
+- Built-in skills live at `$AGENT_PATH/builtin-skills` (this location is not configurable via `$SKILLS_DIR`).
+- A leading `ww:` prefix is stripped from each name before matching, so `ww:foo` and `foo` are equivalent.
+- Each name is trimmed of surrounding whitespace, so `-n 'a, b'` works as expected.
+- A matching folder `<builtin-skills>/<name>` is removed recursively; a name with no matching folder is reported and skipped (the command still exits `0`).
+- Any name containing a path separator (or `.`/`..`, evaluated after the `ww:` prefix is stripped) is rejected and the command exits non-zero before deleting anything further.
+- On completion it prints a summary of how many skills were deleted and skipped.
+
+### Examples
+```shell
+# Delete a single built-in skill
+delete-builtin-skills -n login-flow
+
+# Delete several built-in skills at once
+delete-builtin-skills -n login-flow,checkout-flow
+
+# A "ww:" prefix targets the unprefixed skill name
+delete-builtin-skills -n ww:login-flow
+```
+
+## `delete-test-skills` Command
+<Since version="1.4.0" />
+
+`delete-test-skills` removes skill folders that were loaded via [`load-test-skills`](#load-test-skills-command). It either deletes a comma-delimited list of skill names (`-n`) or clears every user-defined skill (`-a`), removing each matching folder under the skills directory. The skills directory is `$SKILLS_DIR` when set, otherwise `$AGENT_PATH/skills`. Only user-loaded skills are affected — built-in skills under `$AGENT_PATH/builtin-skills` are never touched.
+
+```shell
+delete-test-skills [-ap <agent-path>] -n <name1,name2,...>
+delete-test-skills [-ap <agent-path>] -a
+```
+
+### Options
+| Option | Description |
+| --- | --- |
+| `-n`, `--names <names>` | Comma-delimited skill folder names to delete |
+| `-a`, `--all` | Delete all user-defined skills under the skills directory (mutually exclusive with `-n`) |
+| `-ap <path>` | Override the agent path (default: `/agent`) |
+| `-h`, `--help`, `h`, `help` | Show usage help |
+
+### Behavior
+- Exactly one of `-n` or `-a` is required; supplying both exits non-zero.
+- With `-a`, every immediate subfolder of the skills directory is deleted; if the directory is missing or empty, the command still exits `0`.
+- Each name is trimmed of surrounding whitespace, so `-names 'a, b'` works as expected.
+- A matching folder `<skills-dir>/<name>` is removed recursively; a name with no matching folder is reported and skipped (the command still exits `0`).
+- `$SKILLS_DIR` overrides the default `$AGENT_PATH/skills` location.
+- Any name containing a path separator (or `.`/`..`) is rejected and the command exits non-zero before deleting anything further.
+- On completion it prints a summary of how many skills were deleted and skipped.
+
+### Examples
+```shell
+# Delete a single skill
+delete-test-skills -n login-flow
+
+# Delete several skills at once
+delete-test-skills -n login-flow,checkout-flow
+
+# Delete all user-defined skills
+delete-test-skills -a
+
+# Use a custom skills directory
+SKILLS_DIR=/tmp/skills delete-test-skills -n login-flow
+```
+
 ## `display-ai-config` Command
 <Since version="1.3.0" />
 
@@ -151,6 +234,41 @@ Returns a JSON object with exactly these keys:
 ### Example
 ```shell
 display-ai-config
+```
+
+## `display-test-skills` Command
+<Since version="1.4.0" />
+
+`display-test-skills` lists installed skills, or prints a single skill's `SKILL.md`. Skills are read from two locations: `$AGENT_PATH/builtin-skills` (shipped with the image) and the user skills directory — `$SKILLS_DIR` when set, otherwise `$AGENT_PATH/skills` (loaded via [`load-test-skills`](#load-test-skills-command)). Without arguments it lists every skill in both, tagging built-in skills with `(built-in)`. With `--show <skill-name>` it prints that skill's `SKILL.md`, preferring a user skill over a built-in one of the same name, and prints `No skill is matched.` when neither exists.
+
+```shell
+display-test-skills [-ap <agent-path>] [--show|-s <skill-name>]
+```
+
+### Options
+| Option | Description |
+| --- | --- |
+| `-s`, `--show <skill-name>` | Print the named skill's `SKILL.md` instead of listing |
+| `-ap <path>` | Override the agent path (default: `/agent`) |
+| `-h`, `--help`, `h`, `help` | Show usage help |
+
+### Behavior
+- List mode enumerates skill folders under `builtin-skills/` (marked `(built-in)`) then the user skills directory; if neither has any, it prints `No skills installed.`.
+- Show mode looks up `<skills-dir>/<name>/SKILL.md` first, then `builtin-skills/<name>/SKILL.md`, so a user skill shadows a built-in of the same name.
+- `$SKILLS_DIR` overrides the default `$AGENT_PATH/skills` location for the user skills directory.
+- A skill name containing a path separator (or `.`/`..`) is rejected.
+- When the named skill is not found in either location, it prints `No skill is matched.` and exits `0`.
+
+### Examples
+```shell
+# List all installed skills (built-in and user)
+display-test-skills
+
+# Print a specific skill's SKILL.md
+display-test-skills --show login-flow
+
+# Short flag against a custom agent path
+display-test-skills -ap /agent -s login-flow
 ```
 
 ## `enable-test-on-host` Command
@@ -213,6 +331,30 @@ Each section is printed in order. Missing files are reported inline and do not a
 | `test-results.json` missing, `agent.log` exists | `ℹ️  No test results found.` followed by the full content of `agent.log` |
 | Run did not complete | `⚠️  Run did not complete:` followed by the exit condition |
 | Test results exist, no failed tests | `✅ No failed tests found in test results.` |
+
+## `load-test-skills` Command
+<Since version="1.4.0" />
+
+`load-test-skills` creates a skill folder named `<skill-name>` under the agent's skills directory and writes content read from stdin into a `SKILL.md` inside it. This lets you push a skill into the agent without editing files in place. An existing skill is left untouched unless you pass `--force`.
+
+```shell
+load-test-skills -name <skill-name> [--force]
+```
+
+### Behavior
+- Content is read from stdin and written to the skill's `SKILL.md`.
+- A skill name containing a path separator (or `.`/`..`) is rejected.
+- An existing skill folder is skipped unless `--force` (`-f`) is given.
+- Missing parent directories are created automatically.
+
+### Examples
+```shell
+# Create a skill from stdin
+cat ./SKILL.md | load-test-skills -name login-flow
+
+# Overwrite an existing skill
+cat ./SKILL.md | load-test-skills -name login-flow --force
+```
 
 ## `manage-global-constants` Command
 <Since version="1.1.0" />
