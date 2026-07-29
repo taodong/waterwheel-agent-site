@@ -13,12 +13,35 @@ This is a quick guide to get the Waterwheel agent running on your local machine 
 steps below cover **macOS / Linux**, **Windows (PowerShell)**, and
 **Windows (CMD)**. Use the tabs to pick your shell.
 
+![All six quick start steps run end to end in a terminal](/img/quick-start-demo.gif)
+
+<small>
+
+A real recording of the six steps below — from `docker run` to `All tests passed`
+— against the `1.4.0` image. Idle waiting is sped up; all command output plays at
+normal speed.
+
+</small>
+
 :::info[Once you're inside the container, the OS no longer matters]
 Only the host-side setup steps (setting environment variables and `docker run`)
-differ between operating systems. Commands such as `config-agent`,
+differ between operating systems. Commands such as `config-ai-provider`,
 `manage-test-files`, `run-qa`, and `check-test-result` are run through
 `docker exec` and are **identical on every platform**, so those steps are shown
 as a single code block.
+:::
+
+:::tip[Other ways to run the agent]
+This guide uses plain `docker run` and `docker exec`. Two alternatives are
+available once you know what you need:
+
+- **[Run through Docker Compose](./advanced-usage)** — mount your own instruction
+  files, tasks, and configuration from the host and bring the agent up with
+  `docker compose up -d`. Use this when you want the agent fully customized and
+  reproducible.
+- **[Run through a code agent](./agent-loops)** — install the Waterwheel skills
+  into a code agent such as Claude Code and let it install, configure, and drive
+  the agent for you in an autonomous test-and-fix loop.
 :::
 
 ## What Is Shipped
@@ -106,20 +129,17 @@ available to the container.
 
 ## 2. Install the Waterwheel Container
 
-This pulls the image (on first run) and starts the agent in the background. It
-mounts two folders from your current directory: `import`, a staging area for any
-files you want to move into the container (test tasks, preset flow files, and so
-on), and `outputs` where results and logs are written.
+This pulls the image (on first run) and starts the agent in the background. No
+volume mounts are needed — the command line interface moves test tasks,
+instructions, and results in and out of the container for you.
 
 <Tabs groupId="os">
 <TabItem value="unix" label="macOS / Linux" default>
 
 ```bash
 docker run -d --name waterwheel-agent \
-  -v "$(pwd)/import":/agent/import \
-  -v "$(pwd)/outputs":/agent/outputs \
   -e AI_API_KEY \
-  taojdcn/duotail-waterwheel:1.3.0
+  taojdcn/duotail-waterwheel:1.4.0
 ```
 
 </TabItem>
@@ -127,10 +147,8 @@ docker run -d --name waterwheel-agent \
 
 ```powershell
 docker run -d --name waterwheel-agent `
-  -v "${PWD}/import:/agent/import" `
-  -v "${PWD}/outputs:/agent/outputs" `
   -e AI_API_KEY `
-  taojdcn/duotail-waterwheel:1.3.0
+  taojdcn/duotail-waterwheel:1.4.0
 ```
 
 </TabItem>
@@ -138,29 +156,60 @@ docker run -d --name waterwheel-agent `
 
 ```bat
 docker run -d --name waterwheel-agent ^
-  -v "%cd%/import:/agent/import" ^
-  -v "%cd%/outputs:/agent/outputs" ^
   -e AI_API_KEY ^
-  taojdcn/duotail-waterwheel:1.3.0
+  taojdcn/duotail-waterwheel:1.4.0
 ```
 
 </TabItem>
 </Tabs>
 
-:::tip[Volume mounts on Windows]
-Docker Desktop's WSL 2 backend handles `${PWD}` (PowerShell) and `%cd%` (CMD)
-automatically. If a volume fails to mount, confirm that your drive is shared
-under **Docker Desktop → Settings → Resources → File sharing**.
-:::
-
 ## 3. Configure the Agent
 
-Launch the interactive configuration script. It walks you through choosing an AI
-provider mode.
+Point the agent at the provider your API key belongs to. Pick your provider
+below — each command uses the model we recommend in the
+[Provider Configuration Guide](./provider-guide), together with the
+token-`efficiency` mode.
+
+<Tabs groupId="provider">
+<TabItem value="anthropic" label="Anthropic" default>
+
+```bash
+docker exec waterwheel-agent config-ai-provider --provider anthropic --model claude-sonnet-4-6 --mode efficiency
+```
+
+</TabItem>
+<TabItem value="openai" label="OpenAI">
+
+```bash
+docker exec waterwheel-agent config-ai-provider --provider openai --model gpt-5.4 --mode efficiency
+```
+
+</TabItem>
+<TabItem value="gemini" label="Gemini">
+
+```bash
+docker exec waterwheel-agent config-ai-provider --provider gemini --model gemini-2.5-flash --mode efficiency
+```
+
+</TabItem>
+<TabItem value="deepseek" label="DeepSeek">
+
+```bash
+docker exec waterwheel-agent config-ai-provider --provider deepseek --model deepseek-v4-pro --mode efficiency
+```
+
+</TabItem>
+</Tabs>
+
+:::tip[Need more than a provider and model?]
+For provider-specific extras — an `Ollama`-hosted `Gemma 4` base URL, or a
+localized system prompt — use the interactive
+[`config-agent`](./usage#config-agent-command) command instead:
 
 ```bash
 docker exec -it waterwheel-agent config-agent
 ```
+:::
 
 :::warning[The AI provider is locked once set]
 After you save a provider mode, switching to a **different** provider (for
@@ -169,41 +218,7 @@ switch between modes of the same provider at any time. See the
 [Provider Configuration Guide](./provider-guide) for recommended provider settings.
 :::
 
-## 4. Add a Sample Test
-
-Download the sample test into the `import` folder next to where you ran
-`docker run`:
-
-<a href="/files/installation/test-wikipedia-english.md" download>test-wikipedia-english.md</a>
-
-This sample verifies that clicking the `English` language link on
-[wikipedia.org](https://www.wikipedia.org) navigates to the English welcome page.
-
-Because `import` is mounted into the container, the file is available at
-`/agent/import` immediately. Use `manage-test-files add` to move it into the
-agent's `tasks` folder:
-
-```bash
-docker exec -it waterwheel-agent manage-test-files add /agent/import/test-wikipedia-english.md
-```
-
-Then confirm the agent sees it:
-
-```bash
-docker exec -it waterwheel-agent manage-test-files list
-```
-
-The `list` command should show `test-wikipedia-english.md`.
-
-:::tip[Managing tasks later]
-Drop more files into your `import` folder on the host, then move them into the
-container with the management commands. Use `manage-test-files add` for `.md`
-task files, and `preset-context flow` to import a flow file. You can also remove
-tasks with `manage-test-files delete` and `manage-test-files clear`. See the
-[Usage](./usage#manage-test-files-command) guide for the full command reference.
-:::
-
-## 5. Verify Your Configuration
+## 4. Verify Your Configuration
 
 Run a dry run first to confirm everything is wired up correctly without consuming tokens.
 
@@ -211,15 +226,30 @@ Run a dry run first to confirm everything is wired up correctly without consumin
 docker exec -it waterwheel-agent run-qa --dry-run
 ```
 
-## 6. Run Your QA Tasks
+## 5. Run Your QA Tasks
 
-When the dry run looks good, execute the tests in the `tasks` directory, which contains the sample test from step 4.
+A sample test is baked into the image, so there is nothing to add before your
+first run. You can see what the agent will execute with:
+
+```bash
+docker exec -it waterwheel-agent manage-test-files list
+```
+
+When the dry run looks good, execute the tests in the `tasks` directory:
 
 ```bash
 docker exec -it waterwheel-agent run-qa
 ```
 
-## 7. Check the Results
+:::tip[Adding your own tasks]
+Use [`upload-test-task`](./usage#upload-test-task-command) to create a markdown
+task from stdin, and [`upload-instruction-file`](./usage#upload-instruction-file-command)
+for instruction and config files. You can remove the bundled sample — or any
+other task — with `manage-test-files delete` and `manage-test-files clear`. See
+the [Usage](./usage#manage-test-files-command) guide for the full command reference.
+:::
+
+## 6. Check the Results
 
 Print the contents of the latest test results.
 
@@ -238,12 +268,19 @@ docker exec -it waterwheel-agent get-failure-detail
 
 ## Uninstallation
 
-If you need to change your AI provider, uninstall the agent and reconfigure it from step 1. Your `import` and `outputs`
-folders on the host are untouched.
+If you need to change your AI provider, uninstall the agent and reconfigure it from step 1. Removing the container also
+discards its test tasks and results, so export anything you want to keep first — see
+[`output-context-variables`](./usage#output-context-variables-command) and
+[`check-test-result`](./usage#check-test-result-command).
 
 ```bash
 docker rm -f waterwheel-agent
 ```
 
 ## Next Steps
-Please read [Usage](./usage) and [Manage Test Tasks](./test-task-manual) to learn how to use the agent to test your website.
+
+- [Usage](./usage) and [Manage Test Tasks](./test-task-manual) — how to use the agent to test your own website.
+- [Run through Docker Compose](./advanced-usage) — bring the agent up with your own instruction files, tasks, and
+  configuration mounted from the host.
+- [Run through a code agent](./agent-loops) — pair Waterwheel with a code agent such as Claude Code for an autonomous
+  test-and-fix loop.

@@ -2,6 +2,8 @@
 sidebar_position: 2
 ---
 import Since from '@site/src/components/Since';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Usage
 ## Commands
@@ -30,11 +32,67 @@ The container provides the following commands to help you run web tests.
 | [`upload-instruction-file`](#upload-instruction-file-command)    | Upload an instruction or config file into the agent |
 | [`upload-test-task`](#upload-test-task-command)           | Upload a markdown test task into the agent |
 
-To run these commands on your host machine, prepend `docker exec -it waterwheel-agent`.
+## Running the Commands
+
+Every command below runs **inside** the container. From your host machine, prepend
+`docker exec -it waterwheel-agent`:
 
 ```shell title="Execute run-qa on host machine"
 docker exec -it waterwheel-agent run-qa
 ```
+
+Each command's synopsis is shown in its in-container form (the signature), while the
+**Examples** are written as ready-to-paste `docker exec` commands.
+
+:::tip[Which `docker exec` flags to use]
+| Situation | Flags | Example |
+| --- | --- | --- |
+| Normal command | `-it` | `docker exec -it waterwheel-agent run-qa` |
+| **Piping content from the host** into the container | `-i` **only** | `cat ./login.md \| docker exec -i waterwheel-agent upload-test-task login.md` |
+| Passing an environment variable | `-e` before the container name | `docker exec -e SKILLS_DIR=/tmp/skills -it waterwheel-agent display-test-skills` |
+
+Adding `-t` while piping from the host allocates a TTY, which corrupts the piped
+input. Use plain `-i` for the `upload-*` and `load-test-skills` commands.
+:::
+
+:::tip[Silence Docker CLI hint messages]
+Docker prints occasional hint messages above your command's output, which is
+noisy when you are reading test results or piping output into another tool. Set
+`DOCKER_CLI_HINTS` to `false` in the shell you run these commands from:
+
+<Tabs groupId="os">
+<TabItem value="unix" label="macOS / Linux" default>
+
+```bash
+export DOCKER_CLI_HINTS=false
+```
+
+</TabItem>
+<TabItem value="powershell" label="Windows (PowerShell)">
+
+```powershell
+$env:DOCKER_CLI_HINTS = "false"
+```
+
+</TabItem>
+<TabItem value="cmd" label="Windows (CMD)">
+
+```bat
+set DOCKER_CLI_HINTS=false
+```
+
+</TabItem>
+</Tabs>
+
+This lasts only for the current terminal session. To make it permanent, add the
+line to your shell profile (`~/.zshrc`, `~/.bashrc`, or your PowerShell profile).
+:::
+
+:::note[Using Docker Compose]
+If you brought the agent up with [Docker Compose](./advanced-usage), replace
+`docker exec ... waterwheel-agent` with `docker compose exec ... waterwheel-agent`
+in every example. The command and its arguments are otherwise identical.
+:::
 
 ## `check-test-result` Command
 <Since version="1.1.0" />
@@ -53,6 +111,11 @@ check-test-result
 | `test-results.json` missing, `agent.log` missing | `ℹ️  No test results found.` |
 | `test-results.json` missing, `agent.log` exists | `ℹ️  No test results found.` followed by the full content of `agent.log` |
 
+### Example
+```shell
+docker exec -it waterwheel-agent check-test-result
+```
+
 ## `config-agent` Command
 <Since version="1.1.0" />
 
@@ -60,6 +123,12 @@ The `config-agent` command allows users to configure the AI provider, browser pe
 
 ```shell
 config-agent
+```
+
+`config-agent` is interactive, so the `-t` flag is required:
+
+```shell
+docker exec -it waterwheel-agent config-agent
 ```
 
 ### Main Menu
@@ -127,10 +196,12 @@ config-ai-provider --provider <provider> --model <model> --mode <default|efficie
 ### Examples
 ```shell
 # Apply Anthropic default mode with an explicit model
-config-ai-provider --provider anthropic --model claude-sonnet-4-5 --mode default
+docker exec -it waterwheel-agent \
+  config-ai-provider --provider anthropic --model claude-sonnet-4-6 --mode default
 
 # Apply OpenAI token-efficiency mode
-config-ai-provider --provider openai --model gpt-5.4 --mode efficiency
+docker exec -it waterwheel-agent \
+  config-ai-provider --provider openai --model gpt-5.4 --mode efficiency
 ```
 
 ## `delete-builtin-skills` Command
@@ -139,14 +210,13 @@ config-ai-provider --provider openai --model gpt-5.4 --mode efficiency
 `delete-builtin-skills` removes built-in skill folders that ship with the image, under `$AGENT_PATH/builtin-skills`. It deletes a comma-delimited list of skill names (`-n`), removing each exactly-matched folder. Unlike [`delete-test-skills`](#delete-test-skills-command), there is **no `-a`/`--all` option** — built-in skills can only be removed by exact name. A leading `ww:` prefix on a name is ignored, so `ww:foo` targets the folder `foo`.
 
 ```shell
-delete-builtin-skills [-ap <agent-path>] -n <name1,name2,...>
+delete-builtin-skills -n <name1,name2,...>
 ```
 
 ### Options
 | Option | Description |
 | --- | --- |
 | `-n`, `--names <names>` | Comma-delimited built-in skill folder names to delete |
-| `-ap <path>` | Override the agent path (default: `/agent`) |
 | `-h`, `--help`, `h`, `help` | Show usage help |
 
 ### Behavior
@@ -161,13 +231,13 @@ delete-builtin-skills [-ap <agent-path>] -n <name1,name2,...>
 ### Examples
 ```shell
 # Delete a single built-in skill
-delete-builtin-skills -n login-flow
+docker exec -it waterwheel-agent delete-builtin-skills -n login-flow
 
 # Delete several built-in skills at once
-delete-builtin-skills -n login-flow,checkout-flow
+docker exec -it waterwheel-agent delete-builtin-skills -n login-flow,checkout-flow
 
 # A "ww:" prefix targets the unprefixed skill name
-delete-builtin-skills -n ww:login-flow
+docker exec -it waterwheel-agent delete-builtin-skills -n ww:login-flow
 ```
 
 ## `delete-test-skills` Command
@@ -176,8 +246,8 @@ delete-builtin-skills -n ww:login-flow
 `delete-test-skills` removes skill folders that were loaded via [`load-test-skills`](#load-test-skills-command). It either deletes a comma-delimited list of skill names (`-n`) or clears every user-defined skill (`-a`), removing each matching folder under the skills directory. The skills directory is `$SKILLS_DIR` when set, otherwise `$AGENT_PATH/skills`. Only user-loaded skills are affected — built-in skills under `$AGENT_PATH/builtin-skills` are never touched.
 
 ```shell
-delete-test-skills [-ap <agent-path>] -n <name1,name2,...>
-delete-test-skills [-ap <agent-path>] -a
+delete-test-skills -n <name1,name2,...>
+delete-test-skills -a
 ```
 
 ### Options
@@ -185,7 +255,6 @@ delete-test-skills [-ap <agent-path>] -a
 | --- | --- |
 | `-n`, `--names <names>` | Comma-delimited skill folder names to delete |
 | `-a`, `--all` | Delete all user-defined skills under the skills directory (mutually exclusive with `-n`) |
-| `-ap <path>` | Override the agent path (default: `/agent`) |
 | `-h`, `--help`, `h`, `help` | Show usage help |
 
 ### Behavior
@@ -200,16 +269,17 @@ delete-test-skills [-ap <agent-path>] -a
 ### Examples
 ```shell
 # Delete a single skill
-delete-test-skills -n login-flow
+docker exec -it waterwheel-agent delete-test-skills -n login-flow
 
 # Delete several skills at once
-delete-test-skills -n login-flow,checkout-flow
+docker exec -it waterwheel-agent delete-test-skills -n login-flow,checkout-flow
 
 # Delete all user-defined skills
-delete-test-skills -a
+docker exec -it waterwheel-agent delete-test-skills -a
 
-# Use a custom skills directory
-SKILLS_DIR=/tmp/skills delete-test-skills -n login-flow
+# Use a custom skills directory (pass the variable with docker exec -e)
+docker exec -e SKILLS_DIR=/tmp/skills -it waterwheel-agent \
+  delete-test-skills -n login-flow
 ```
 
 ## `display-ai-config` Command
@@ -233,7 +303,7 @@ Returns a JSON object with exactly these keys:
 
 ### Example
 ```shell
-display-ai-config
+docker exec -it waterwheel-agent display-ai-config
 ```
 
 ## `display-test-skills` Command
@@ -242,14 +312,13 @@ display-ai-config
 `display-test-skills` lists installed skills, or prints a single skill's `SKILL.md`. Skills are read from two locations: `$AGENT_PATH/builtin-skills` (shipped with the image) and the user skills directory — `$SKILLS_DIR` when set, otherwise `$AGENT_PATH/skills` (loaded via [`load-test-skills`](#load-test-skills-command)). Without arguments it lists every skill in both, tagging built-in skills with `(built-in)`. With `--show <skill-name>` it prints that skill's `SKILL.md`, preferring a user skill over a built-in one of the same name, and prints `No skill is matched.` when neither exists.
 
 ```shell
-display-test-skills [-ap <agent-path>] [--show|-s <skill-name>]
+display-test-skills [--show|-s <skill-name>]
 ```
 
 ### Options
 | Option | Description |
 | --- | --- |
 | `-s`, `--show <skill-name>` | Print the named skill's `SKILL.md` instead of listing |
-| `-ap <path>` | Override the agent path (default: `/agent`) |
 | `-h`, `--help`, `h`, `help` | Show usage help |
 
 ### Behavior
@@ -262,13 +331,13 @@ display-test-skills [-ap <agent-path>] [--show|-s <skill-name>]
 ### Examples
 ```shell
 # List all installed skills (built-in and user)
-display-test-skills
+docker exec -it waterwheel-agent display-test-skills
 
 # Print a specific skill's SKILL.md
-display-test-skills --show login-flow
+docker exec -it waterwheel-agent display-test-skills --show login-flow
 
-# Short flag against a custom agent path
-display-test-skills -ap /agent -s login-flow
+# Short flag form of --show
+docker exec -it waterwheel-agent display-test-skills -s login-flow
 ```
 
 ## `enable-test-on-host` Command
@@ -292,7 +361,7 @@ enable-test-on-host
 
 ### Example
 ```shell
-enable-test-on-host
+docker exec -it waterwheel-agent enable-test-on-host
 ```
 
 ## `get-failure-detail` Command
@@ -332,6 +401,15 @@ Each section is printed in order. Missing files are reported inline and do not a
 | Run did not complete | `⚠️  Run did not complete:` followed by the exit condition |
 | Test results exist, no failed tests | `✅ No failed tests found in test results.` |
 
+### Examples
+```shell
+# Print the diagnostic report for the first failed test
+docker exec -it waterwheel-agent get-failure-detail
+
+# Include the API log in the report
+docker exec -it waterwheel-agent get-failure-detail -d
+```
+
 ## `load-test-skills` Command
 <Since version="1.4.0" />
 
@@ -348,12 +426,19 @@ load-test-skills -name <skill-name> [--force]
 - Missing parent directories are created automatically.
 
 ### Examples
+
+Content is piped in from the host, so use `docker exec -i` **without** `-t`:
+
 ```shell
-# Create a skill from stdin
-cat ./SKILL.md | load-test-skills -name login-flow
+# Create a skill from a file on the host
+cat ./SKILL.md | docker exec -i waterwheel-agent load-test-skills -name login-flow
 
 # Overwrite an existing skill
-cat ./SKILL.md | load-test-skills -name login-flow --force
+cat ./SKILL.md | docker exec -i waterwheel-agent load-test-skills -name login-flow --force
+
+# Write a skill inline without a local file
+printf '# Login flow\n\nSteps...\n' | \
+  docker exec -i waterwheel-agent load-test-skills -name login-flow
 ```
 
 ## `manage-global-constants` Command
@@ -375,22 +460,24 @@ manage-global-constants <operation> [args]
 ### Examples
 ```shell
 # List all values
-manage-global-constants list
+docker exec -it waterwheel-agent manage-global-constants list
 
 # Set multiple values (quoted and unquoted)
-manage-global-constants set BASE_URL="https://staging.example.com",TENANT=acme,SUPPORT_EMAIL=qa@example.com
+docker exec -it waterwheel-agent manage-global-constants \
+  set BASE_URL="https://staging.example.com",TENANT=acme,SUPPORT_EMAIL=qa@example.com
 
 # Set nested values with dotted keys
-manage-global-constants set user.username=qa_user,user.password=secret
+docker exec -it waterwheel-agent manage-global-constants \
+  set user.username=qa_user,user.password=secret
 
 # Overwrite an existing key
-manage-global-constants set TENANT=newcorp
+docker exec -it waterwheel-agent manage-global-constants set TENANT=newcorp
 
 # Delete specific keys (unknown keys produce a warning, known keys are still deleted)
-manage-global-constants delete BASE_URL,TENANT
+docker exec -it waterwheel-agent manage-global-constants delete BASE_URL,TENANT
 
 # Remove all values (also deletes the file)
-manage-global-constants clear
+docker exec -it waterwheel-agent manage-global-constants clear
 ```
 
 :::note[Operation Rules]
@@ -421,30 +508,47 @@ manage-test-files <operation> [args]
 ### Examples
 ```shell
 # List current markdown test files
-manage-test-files list
-
-# Add two markdown files
-manage-test-files add ./instructions/test-a.md,./instructions/test-b.md
-
-# Add all direct markdown files from a directory (subdirectories are ignored)
-manage-test-files add ./instructions
+docker exec -it waterwheel-agent manage-test-files list
 
 # Delete by index
-manage-test-files delete 1,3
+docker exec -it waterwheel-agent manage-test-files delete 1,3
 
 # Delete by filename and index in one call
-manage-test-files delete login-flow.md,2
+docker exec -it waterwheel-agent manage-test-files delete login-flow.md,2
 
 # Clear all markdown test files
-manage-test-files clear
+docker exec -it waterwheel-agent manage-test-files clear
 ```
+
+The `add` operation resolves its paths **inside** the container, so it is only
+useful when the files are already there — for example under a volume you mounted
+with [Docker Compose](./advanced-usage):
+
+```shell
+# Add two markdown files that exist inside the container
+docker exec -it waterwheel-agent \
+  manage-test-files add /agent/import/test-a.md,/agent/import/test-b.md
+
+# Add all direct markdown files from a container directory (subdirectories are ignored)
+docker exec -it waterwheel-agent manage-test-files add /agent/import
+```
+
+:::tip[Adding a task from the host]
+If you started the container without volume mounts, `add` cannot see your host
+files. Pipe the task in with [`upload-test-task`](#upload-test-task-command)
+instead:
+
+```shell
+cat ./test-a.md | docker exec -i waterwheel-agent upload-test-task test-a.md
+```
+:::
 
 :::note[Operation Rules]
 - Only `.md` files are listed and managed.
 - `add` overwrites an existing file with the same destination name silently.
 - Directory import includes only direct child files, not subdirectories.
 - `delete` is best effort: invalid selectors print warnings while valid selectors are still deleted.
-- Source paths passed to `add` are resolved inside the container, not on the host machine. Make sure the files are reachable from a mapped volume (for example, under `/agent`) before referencing them.
+- Source paths passed to `add` are resolved inside the container, not on the host machine. Make sure the files are reachable inside the container (for example, under a mounted volume) before referencing them, or use [`upload-test-task`](#upload-test-task-command) to push a file in from the host.
 :::
 
 ## `output-context-variables` Command
@@ -469,7 +573,11 @@ output-context-variables
 | `test-context.json` is missing | Prints an error that no `test-context.json` was found, and exits non-zero |
 
 ### Example
-`output-context-variables` prints:
+```shell
+docker exec -it waterwheel-agent output-context-variables
+```
+
+It prints:
 
 ```json
 {
@@ -517,29 +625,44 @@ See the [Define Test Flow](./test-task-manual#define-test-flow) section for full
 ### Examples
 ```shell
 # List all preset values
-preset-context variables list
+docker exec -it waterwheel-agent preset-context variables list
 
 # Set preset overrides
-preset-context variables set username=admin,password=123456789
+docker exec -it waterwheel-agent preset-context variables \
+  set username=admin,password=123456789
 
 # Set nested values with dotted keys
-preset-context variables set user.username=admin,user.password=123456789
+docker exec -it waterwheel-agent preset-context variables \
+  set user.username=admin,user.password=123456789
 
 # Remove keys (supports dotted keys)
-preset-context variables delete username,user.password
+docker exec -it waterwheel-agent preset-context variables \
+  delete username,user.password
 
 # Clear preset values (flow is preserved)
-preset-context variables clear
+docker exec -it waterwheel-agent preset-context variables clear
 
-# Import the test flow from a JSON file
-preset-context flow ./instructions/preset-flow.json
+# Import the test flow from a JSON file inside the container
+docker exec -it waterwheel-agent preset-context flow /agent/import/preset-flow.json
 
 # Clear the flow (preset values are preserved)
-preset-context flow clear
+docker exec -it waterwheel-agent preset-context flow clear
 
 # List current flow entries
-preset-context flow list
+docker exec -it waterwheel-agent preset-context flow list
 ```
+
+:::tip[Importing a flow file from the host]
+`preset-context flow <file>` resolves its path inside the container. Without a
+mounted volume, push the file in first with
+[`upload-instruction-file`](#upload-instruction-file-command), then import it:
+
+```shell
+cat ./preset-flow.json | \
+  docker exec -i waterwheel-agent upload-instruction-file preset-flow.json
+docker exec -it waterwheel-agent preset-context flow /agent/instructions/preset-flow.json
+```
+:::
 
 :::note[Operation Rules]
 - Key names are case-sensitive. We recommend using lowercase or camelCase names.
@@ -576,13 +699,13 @@ reset-test-config [-t] [-i]
 ### Examples
 ```shell
 # Reset both tasks and instructions
-reset-test-config
+docker exec -it waterwheel-agent reset-test-config
 
 # Reset task files only
-reset-test-config -t
+docker exec -it waterwheel-agent reset-test-config -t
 
 # Reset instruction files only
-reset-test-config -i
+docker exec -it waterwheel-agent reset-test-config -i
 ```
 
 ## `run-qa` Command
@@ -598,20 +721,64 @@ reset-test-config -i
 run-qa
 ```
 
+```shell title="From the host"
+docker exec -it waterwheel-agent run-qa
+```
+
 ### Dry Run Mode
 
 `run-qa` supports a `--dry-run` flag to help identify configuration issues without making any API calls.
 
 ```shell
-run-qa --dry-run
+docker exec -it waterwheel-agent run-qa --dry-run
 ```
 
 In dry run mode, the command performs the following steps in order:
 
 1. Clear outputs from any previous run
 2. Restart the preinstalled MCP servers and reload any changed permissions
-3. Start the AI agent to print the active configuration and prompts
-4. Parse all test files under `/agent/tasks` and print a test summary
+3. Start the AI agent to record the active configuration and prompts
+4. Parse all test files under `/agent/tasks` and build a test plan
+
+### Where the dry run results go
+
+Only the orchestrator's progress lines are printed to the terminal, ending with
+`🧪 Dry-run mode enabled.` The configuration, prompts, and test summary are
+**written to files**, not to stdout:
+
+| Output | Location | Contents |
+| --- | --- | --- |
+| Configuration and prompts | `/agent/outputs/agent.log` | The full system prompt and agent instructions the run would use, the resolved global variables, and a `[DryRun] N task(s) discovered.` line |
+| Test plan | `/agent/outputs/test-plan.json` | One entry per discovered task — its `name`, source `file`, `id`, and a `status` of `queued` |
+
+Read them after the dry run completes:
+
+```shell
+# The parsed test plan
+docker exec -it waterwheel-agent cat /agent/outputs/test-plan.json
+
+# The task count the agent discovered
+docker exec -it waterwheel-agent grep DryRun /agent/outputs/agent.log
+```
+
+```json title="test-plan.json"
+{
+  "results": [
+    {
+      "name": "Test Wikipedia English Language Banner",
+      "file": "test-wikipedia-english.md",
+      "id": "3",
+      "status": "queued"
+    }
+  ],
+  "generated_at": "2026-07-29T07:26:20.005Z"
+}
+```
+
+:::note[Each run clears the previous outputs]
+Step 1 wipes `/agent/outputs`, so `test-plan.json` from a dry run is removed the
+next time you call `run-qa`. Read it before starting the real run.
+:::
 
 ### Inputs
 
@@ -670,11 +837,19 @@ set-domain-permission [-l] <domain1,domain2,...>
 ### Examples
 ```shell
 # Set the allowlist from a list of domains
-set-domain-permission https://www.google.com,"https://*.wikipedia.org","http://localhost:8080"
+docker exec -it waterwheel-agent set-domain-permission \
+  https://www.google.com,"https://*.wikipedia.org","http://localhost:8080"
 
 # Rewrite localhost to host.docker.internal with -l
-set-domain-permission -l "http://localhost:8080","http://localhost:8025"
+docker exec -it waterwheel-agent set-domain-permission \
+  -l "http://localhost:8080","http://localhost:8025"
 ```
+
+:::note[Quoting]
+The quotes are consumed by your **host** shell before the argument reaches the
+container. Keep any entry containing `*`, `?`, or other shell-special characters
+quoted, exactly as shown above.
+:::
 
 See the [URL Permissions](./mcp-guide#url-permissions) section for full details on configuring allowed domains.
 
@@ -685,6 +860,11 @@ See the [URL Permissions](./mcp-guide#url-permissions) section for full details 
 
 ```shell
 stop-qa
+```
+
+### Example
+```shell
+docker exec -it waterwheel-agent stop-qa
 ```
 
 ## `upload-instruction-file` Command
@@ -702,13 +882,17 @@ upload-instruction-file <filename>
 - An existing file is replaced, and a warning is printed when it is.
 
 ### Examples
+
+Content is piped in from the host, so use `docker exec -i` **without** `-t`:
+
 ```shell
 # Create or replace allowed-domains.yaml from stdin
 printf 'allowed:\n  - http://host.docker.internal:8080\n' | \
-  upload-instruction-file allowed-domains.yaml
+  docker exec -i waterwheel-agent upload-instruction-file allowed-domains.yaml
 
 # Pipe a local file into the instructions folder
-cat ./extra-instructions.md | upload-instruction-file extra-instructions.md
+cat ./extra-instructions.md | \
+  docker exec -i waterwheel-agent upload-instruction-file extra-instructions.md
 ```
 
 ## `upload-test-task` Command
@@ -727,10 +911,16 @@ upload-test-task <filename.md>
 - An existing file is replaced, and a warning is printed when it is.
 
 ### Examples
+
+Content is piped in from the host, so use `docker exec -i` **without** `-t`:
+
 ```shell
 # Create or replace a test task from stdin
-printf '# Login test\n' | upload-test-task login.md
+printf '# Login test\n' | docker exec -i waterwheel-agent upload-test-task login.md
 
 # Pipe a local file into the tasks folder
-cat ./checkout.md | upload-test-task checkout.md
+cat ./checkout.md | docker exec -i waterwheel-agent upload-test-task checkout.md
+
+# Confirm the agent picked it up
+docker exec -it waterwheel-agent manage-test-files list
 ```
