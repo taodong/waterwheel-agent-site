@@ -45,6 +45,9 @@ services:
       - ${WATERWHEEL_SYNC_VOLUME_PATH}/agent/tasks:/agent/tasks:ro
       - ${WATERWHEEL_SYNC_VOLUME_PATH}/agent/outputs:/agent/outputs:rw
 
+      # User-defined test skills (rw so load-test-skills / delete-test-skills can manage them)
+      - ${WATERWHEEL_SYNC_VOLUME_PATH}/agent/skills:/agent/skills:rw
+
     # Keep the container alive but idle
     tty: true
     stdin_open: true

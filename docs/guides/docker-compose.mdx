@@ -17,10 +17,6 @@ your shell. All `docker compose` commands are identical everywhere.
 
 ## Installation
  
-:::note
-All files mentioned in this section are bundled in [waterwheel-installer-1.3.0.zip](/files/installation/waterwheel-installer-1.3.0.zip). Download it and extract its contents before proceeding.
-:::
- 
 ### 1. Create the Folder Structure
  
 
@@ -63,14 +59,22 @@ This produces the directory layout that Docker Compose maps into the container:
 ```text
 <sync>/
 └── agent/
-    ├── instructions/   → /agent/instructions  (config files)
+    ├── instructions/   → /agent/instructions   (config files)
     ├── tasks/          → /agent/tasks          (your .md test files)
+    ├── skills/         → /agent/skills         (your test skills, read-write)
     └── outputs/        → /agent/outputs        (results and logs written by the agent)
 ```
 
 Because these folders are bind-mounted, anything you place under
 `agent/instructions` on the host becomes the agent's runtime configuration. See
 [Configuration Files](../reference/configuration-files.mdx) for what each file does.
+
+`agent/skills` is mounted read-write rather than read-only, so
+[`load-test-skills`](../reference/usage.mdx#load-test-skills-command) and
+[`delete-test-skills`](../reference/usage.mdx#delete-test-skills-command) inside the
+container write through to the host — you can author skills in either place and see them
+in both. The mount covers user skills only; the image's built-in `ww:` skills live
+elsewhere and are never shadowed by it.
  
 ### 2. Configure Environment Variables
  
@@ -103,13 +107,31 @@ You can further tune the run by adding the optional `preset-context.json` and
  
 Copy <a href="/files/installation/test-wikipedia-english.md" download>test-wikipedia-english.md</a> into `/path/to/sync/agent/tasks`.
 
+### 6. Add Test Skills (Optional)
+
+Skip this step if you have no skills yet — the sample task does not need one, and the
+built-in skills ship inside the image.
+
+To bring your own, give each skill its own subfolder under `/path/to/sync/agent/skills`,
+holding a single `SKILL.md`:
+
+```text
+<sync>/agent/skills/
+└── login-test-site/
+    └── SKILL.md
+```
+
+Because the folder is bind-mounted, skills placed here are available on the next run — no
+`load-test-skills` call and no container restart. See
+[Create Test Skills](../getting-started/create-test-skills.mdx) for how to write one and how
+the agent decides to use it.
+
 :::note
-You can also try more complex chained test cases by copying <a href="/files/installation/1_test_wikipedia_search.md" download>1_test_wikipedia_search.md</a> and <a href="/files/installation/2_test_wikipedia_navigate.md" download>2_test_wikipedia_navigate.md</a> into `/path/to/sync/agent/tasks`.
-To enable the chaining, you must also copy <a href="/files/installation/preset-context.json" download>preset-context.json</a> into `/path/to/sync/agent/instructions` — its `flow` section defines the execution order and dependency between the two tasks. See [Configuration Files](../reference/configuration-files.mdx) for details.
-However, the API cost may be above $1 per test without configuration tuning.
+Test skills require agent image `1.4.0` or newer — the version `dot_env.txt` pins. On an
+older image the `skills/` mount is created and simply ignored.
 :::
 
-### 6. Deploy the Docker Container
+### 7. Deploy the Docker Container
  
 From the same directory as `docker-compose.yml`, run:
  
@@ -134,10 +156,6 @@ docker compose exec waterwheel-agent run-qa
 ```
  
 Once the command completes, check the results at `/path/to/sync/agent/outputs/test-results.json`.
-
-:::warning
-OpenAI, even with its latest `gpt-5.5` model, has difficulty differentiating between a link and its label. You may experience test failure if OpenAI is your configured AI provider. See our [Provider Guide](../reference/provider-guide.mdx#openai) for details.
-:::
 
 ## Configuration Files
 

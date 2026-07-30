@@ -21,6 +21,7 @@ fi
 DIRS=(
   "${BASE_PATH}/agent/instructions"
   "${BASE_PATH}/agent/tasks"
+  "${BASE_PATH}/agent/skills"
   "${BASE_PATH}/agent/outputs"
 )
 

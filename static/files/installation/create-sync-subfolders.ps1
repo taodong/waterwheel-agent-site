@@ -25,6 +25,7 @@ if ([string]::IsNullOrWhiteSpace($BasePath)) {
 $dirs = @(
   (Join-Path $BasePath 'agent/instructions'),
   (Join-Path $BasePath 'agent/tasks'),
+  (Join-Path $BasePath 'agent/skills'),
   (Join-Path $BasePath 'agent/outputs')
 )
 
