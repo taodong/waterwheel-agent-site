@@ -1,0 +1,411 @@
+---
+id: create-test-skills
+title: Create Test Skills
+sidebar_label: Create Test Skills
+sidebar_position: 2.7
+description: Write reusable test skills to teach the agent a tricky interaction once and to share a repeated flow across tests without copying prose.
+---
+
+import Since from '@site/src/components/Since';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Since version="1.4.0" />
+
+Waterwheel tests are prose, not scripts — so the way to reuse work is not a helper function or a
+page object. It is a **test skill**: a Markdown file holding a named piece of instruction that the
+agent pulls in when a test needs it.
+
+Skills are how Waterwheel avoids test scripts entirely. Everything you would normally put in shared
+code — a login helper, a workaround for a widget the browser automation reads oddly — stays prose,
+stays readable by anyone on the team, and lives in exactly one file.
+
+:::info[Before you start]
+You need a running, configured container — [Quick Start](./quick-start) steps 1 to 3 — and you should
+have written and run a test of your own, as in
+[Write Your First Test](./write-your-first-test). This guide does not re-explain uploading tasks,
+domain permissions, or reading results.
+:::
+
+## What Skills Are For
+
+A skill earns its place by doing one of two jobs.
+
+| Job | The problem | What a skill does |
+| --- | --- | --- |
+| **Bridge an LLM gap** | A particular interaction is one the agent gets wrong or does inconsistently — an ambiguous control, a widget whose accessible structure is misleading, an outcome that has to be confirmed a specific way | Spell out the exact procedure once, in enough detail that the agent stops improvising |
+| **Remove repetition** | Ten tests all begin by logging in, and the login steps are copy-pasted into all ten task files | Describe the flow once as a skill; each test refers to it by name |
+
+Both are the same mechanism. The difference is what you are writing: the first kind is a *precise
+procedure*, the second is an *abstracted process*.
+
+:::note[Two different things are called "skills"]
+This page is about **test skills**, which live inside the agent container and instruct the test
+agent. They are unrelated to the [Waterwheel skills](./agent-loops) you install into a code agent
+such as Claude Code, which drive the container from the outside.
+:::
+
+## How the Agent Uses a Skill
+
+The agent always knows a skill's **name** and its one-line **description** — nothing more. When it
+reads a test whose work matches a description, it asks for that skill by name and receives the full
+instructions before acting.
+
+Two consequences worth understanding before you write one:
+
+- **The description is the trigger.** It is the only part of your skill the agent sees while deciding
+  whether the skill applies. Write it as guidance to the agent ("Use when a task asks to…"), not as
+  documentation for a human.
+- **A long skill body costs nothing until it is used.** A test that never touches the clipboard never
+  pays for the clipboard instructions. This is why you can afford to be genuinely thorough in a skill
+  body in a way you could not in a task file.
+
+## The Two Tiers
+
+| Tier | Who owns it | Named | Purpose |
+| --- | --- | --- | --- |
+| **Built-in** | Ships inside the image, versioned with the agent | `ww:<name>` | Teaches the agent to work around limitations of the underlying browser automation |
+| **User** | You | `<name>`, exactly as you write it | Your application's flows and your own LLM-gap fixes |
+
+The `ww:` prefix is **reserved**. It is what lets you name a skill anything you like without ever
+colliding with a shipped one — a user skill called `form-and-dialog` and the built-in
+`ww:form-and-dialog` coexist as two separate skills, and neither hides the other. A user skill whose
+own name starts with `ww:` is refused and skipped, so do not use that prefix in your own files.
+
+### The built-in skills
+
+Three ship with `1.4.0`. Each covers an interaction where the raw browser tooling is not enough on
+its own:
+
+| Skill | Covers |
+| --- | --- |
+| `ww:clipboard-capture` | Verifying what a copy button actually copied, rather than what the page happens to display |
+| `ww:form-and-dialog` | Filling forms and confirming that a button click really did something — a dialog closed, a row appeared, a URL changed |
+| `ww:take-browser-screenshot` | Capturing a screenshot and filing it under the current test's own folder |
+
+List them at any time:
+
+```bash
+docker exec -it waterwheel-agent display-test-skills
+```
+
+```text
+clipboard-capture (built-in)
+form-and-dialog (built-in)
+take-browser-screenshot (built-in)
+```
+
+Read one before you write your own — they are the best available examples of the level of detail a
+skill body wants:
+
+```bash
+docker exec -it waterwheel-agent display-test-skills --show form-and-dialog
+```
+
+## Anatomy of a `SKILL.md`
+
+A skill is a folder containing a single `SKILL.md`: YAML front matter, then the body.
+
+```md title="SKILL.md"
+---
+name: login-test-site
+description: Log a named user into the test site. Use whenever a task requires an authenticated session.
+---
+
+# Login to Test Site
+<the full instructions>
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `name` | Yes | Kebab-case identifier. This is the name tests and the agent use. |
+| `description` | Yes | One line, agent-facing. Say what the skill does **and when to use it**. |
+
+Everything after the front matter is the body: ordinary Markdown, and the only part the agent reads
+once it decides the skill applies. There is no step syntax and no assertion API — the same prose
+rules as a task file, with more room to be exact.
+
+:::tip[Keep the folder name and the `name` field identical]
+The agent identifies a skill by its front-matter `name`; the CLI commands identify it by its folder
+name. Nothing breaks if the two differ, but you end up deleting `login-flow` to remove a skill the
+agent calls `login-test-site`. Use one spelling for both.
+:::
+
+## Example 1 — Remove Repetition
+
+Login is the classic case: every authenticated test needs it, and nobody wants it pasted into
+twenty files. Write it once, parameterized by the user it should log in as.
+
+```md title="SKILL.md"
+---
+name: login-test-site
+description: >
+  Log a given user into the test site. Triggered by phrases like
+  "log into test site with user X", "sign in test user X", or
+  "login to the test site as X". Verifies the user exists in context,
+  opens the login page, submits the user's credentials, and confirms
+  the session lands on the test site home page.
+---
+
+# Login to Test Site
+
+Reusable test skill that authenticates a **given user** against the test site. The
+"given user" is whatever name follows the trigger phrase (e.g. `testuser`,
+`admin_user`); throughout the steps below, substitute that name for `<user>` and
+read its fields from `${context.<user>}`.
+
+## Steps
+
+1. **Get Test User:** Verify that the given user exists in the context manager — for
+   example, if the given user is `testuser`, the variable `${context.testuser}` must
+   exist. If it is missing, fail the test immediately with the reason:
+   "Test user credential isn't found in context."
+2. **Open Login Page:** Open a browser tab and navigate to `LOGIN_URL`. Fail with
+   reason: "Failed to open the login page." if the page does not load.
+3. **Login:** Fill the `username` field with `${context.<user>.username}` and the
+   `password` field with `${context.<user>.password}`, then submit the login form.
+   Fail with reason: "Failed to submit login credentials for the given user." if the
+   form cannot be submitted.
+4. **Verify Logged In:** Verify the browser URL becomes `TEST_URL`. Fail with reason:
+   "Login did not redirect to the test site." if the URL does not become `TEST_URL`.
+   Otherwise, complete the skill as SUCCESS.
+```
+
+Four things make this reusable rather than merely extracted:
+
+- **It takes an argument.** `<user>` is a placeholder the calling test fills in, so one skill serves
+  `testuser`, `admin_user`, and whatever account you add next.
+- **It reads its inputs from context, not from itself.** No credential is written in the file.
+  `LOGIN_URL` and `TEST_URL` are [global constants](./chain-tests-together#1-set-the-global-context)
+  and the accounts are [preset context](./chain-tests-together#2-seed-a-preset-value) values — so the
+  same skill authenticates against dev and staging unchanged.
+- **It validates before it acts.** Step 1 fails loudly on a missing account instead of submitting an
+  empty form and reporting a confusing login failure.
+- **Every step carries its own failure reason.** When a run breaks inside a shared skill, the result
+  string tells you which stage of it broke.
+
+Load it into the agent. The content is piped from your host, so use `-i` **without** `-t`:
+
+<Tabs groupId="os">
+<TabItem value="unix" label="macOS / Linux" default>
+
+```bash
+cat ./SKILL.md | \
+  docker exec -i waterwheel-agent load-test-skills -name login-test-site
+```
+
+</TabItem>
+<TabItem value="powershell" label="Windows (PowerShell)">
+
+```powershell
+Get-Content ./SKILL.md | `
+  docker exec -i waterwheel-agent load-test-skills -name login-test-site
+```
+
+</TabItem>
+<TabItem value="cmd" label="Windows (CMD)">
+
+```bat
+type SKILL.md | docker exec -i waterwheel-agent load-test-skills -name login-test-site
+```
+
+</TabItem>
+</Tabs>
+
+```text
+Saved content to: /agent/skills/login-test-site/SKILL.md
+```
+
+Confirm it landed:
+
+```bash
+docker exec -it waterwheel-agent display-test-skills
+```
+
+```text
+clipboard-capture (built-in)
+form-and-dialog (built-in)
+take-browser-screenshot (built-in)
+login-test-site
+```
+
+Now a test that needs an authenticated session is two lines instead of five:
+
+```md title="view-profile.md"
+---
+name: View Profile
+id: 1
+---
+
+# View Profile
+
+1. Load the `login-test-site` skill and log into the test site with user `testuser`.
+2. Verify the account menu shows "testuser".
+3. Open the profile page and verify the email matches `${context.testuser.username}`.
+```
+
+## Example 2 — Bridge an LLM Gap
+
+The second kind of skill exists because a specific interaction goes wrong without one. Clicking a
+link by its visible text sounds trivial, but the text you see is often a child node inside the link,
+several links on the page start with similar words, and the agent may re-derive its target between
+finding it and clicking it. The fix is a procedure precise enough to leave no room for improvisation:
+
+```md title="SKILL.md"
+---
+name: oa-link-click
+description: Click a link identified by its visible text. Use when a task step says to click a link `<linktext>`, or click on a link/hyperlink whose label or displayed text is given. Resolves the link's ref from the ARIA tree even when the matched text is a child text node of the link, and clicks it.
+---
+
+### Clicking a link by its text
+
+Use this when a step asks to click a link identified by its visible text `<linktext>`
+(e.g. "Click the `<linktext>` link"). Follow these steps exactly.
+
+1. **Snapshot.** Call `take_verification_snapshot` to get the current ARIA tree and its
+   `snapshot_id`. Use only the token after `ref=` as the click target. Keep this snapshot
+   open until after the click.
+
+2. **Find the link line in the snapshot.** Scan for the single `link`-role line whose
+   accessible name **begins with** `<linktext>`.
+   - If `<linktext>` is on a child node (`text`, `generic`, `strong`), use the enclosing
+     `link` line, not the child's ref.
+   - If no name begins with `<linktext>`: screenshot and **fail** with
+     "No link found for text `<linktext>`."
+   - If two or more qualify and you cannot tell which is intended: screenshot and **fail**
+     with "Ambiguous link text `<linktext>` — multiple matches."
+
+3. **Confirm and record.** On that same line, read its `ref` and the `/url` beneath it. If a
+   destination is expected and the `/url` contradicts it, screenshot and **fail** with
+   "Resolved link `<linktext>` points to the wrong destination." Re-read the snapshot line
+   rather than working from memory.
+
+4. **Click immediately.** As the very next action, with no other tool call in between, click
+   using the exact `ref` token from the line you just recorded.
+
+5. **Release the snapshot.** Call `complete_verification` with the `snapshot_id` and
+   `purpose: "snapshot_release"`.
+```
+
+What makes this shape of skill work:
+
+- **It names the failure modes and what to do about them.** "No match" and "ambiguous match" each get
+  an explicit outcome, so the agent fails with a useful reason instead of clicking its best guess.
+- **It constrains ordering, not just actions.** *As the very next action, with no other tool call in
+  between* is the whole point of step 4 — it closes the gap where a stale target could be
+  substituted.
+- **It is emphatic where the agent tends to drift.** Bold and "exactly" are not decoration here;
+  they mark the instructions that stop being followed first.
+- **It ends by cleaning up.** Releasing the snapshot keeps the run's token cost flat. See
+  [Tuning](./tuning#complete-verification).
+
+Load it the same way, then any test can say *"Click the `Order history` link"* and get the same
+careful behavior every time — that one skill fixes the interaction across your whole suite.
+
+## Getting the Agent to Actually Use a Skill
+
+The agent decides for itself whether a skill applies, which is exactly right for a judgment call
+("this task happens to involve the clipboard") and weaker than you want for a requirement ("always
+authenticate this way").
+
+Two things make it reliable:
+
+1. **Write the description as a trigger.** Include the phrasings your tests use. The
+   `login-test-site` description above lists *"log into test site with user X"*, *"sign in test user
+   X"*, and *"login to the test site as X"* on purpose.
+2. **Name the skill in the test when it is mandatory.** `Load the "login-test-site" skill and log
+   in as testuser` leaves nothing to inference. Use this for any skill that must run — it is the
+   difference between a hint and an instruction.
+
+:::tip[Check the skill was used, not just that the test passed]
+The `result` string in `test-results.json` describes what the agent did. If a test that should have
+gone through your login skill reports its own improvised login steps, the skill did not trigger —
+tighten the description, or name the skill in the task. `get-failure-detail` shows every step and
+tool call for a failed test, including the skill load.
+:::
+
+## Swap Skills Per Environment
+
+The agent reads user skills from `/agent/skills` by default. Point
+[`SKILLS_DIR`](./env-vars-reference) somewhere else and the same tests resolve to a different
+implementation:
+
+```bash
+docker run -d --name waterwheel-agent \
+  -e AI_API_KEY \
+  -e SKILLS_DIR=/agent/skills-staging \
+  taojdcn/duotail-waterwheel:1.4.0
+```
+
+Your task files still say `login-test-site`; which login they get depends on the directory. This is
+the reason skills are worth extracting even when a flow appears in only one test — the flow becomes
+something you can vary per environment without editing a single test.
+
+Built-in skills are never affected by `SKILLS_DIR`. Repointing it — or mounting your own folder over
+`/agent/skills` — leaves `ww:clipboard-capture`, `ww:form-and-dialog`, and
+`ww:take-browser-screenshot` in place.
+
+## Managing Skills
+
+| Command | Does |
+| --- | --- |
+| [`load-test-skills`](./usage#load-test-skills-command) | Create a skill from piped content |
+| [`display-test-skills`](./usage#display-test-skills-command) | List every skill, or print one's `SKILL.md` |
+| [`delete-test-skills`](./usage#delete-test-skills-command) | Remove your skills by name, or all of them |
+| [`delete-builtin-skills`](./usage#delete-builtin-skills-command) | Remove a shipped skill by exact name |
+
+Updating a skill needs `--force`, since an existing folder is left alone by default:
+
+```bash
+cat ./SKILL.md | docker exec -i waterwheel-agent \
+  load-test-skills -name login-test-site
+```
+
+```text
+Skipping existing skill folder: /agent/skills/login-test-site (use --force to overwrite)
+```
+
+```bash
+cat ./SKILL.md | docker exec -i waterwheel-agent \
+  load-test-skills -name login-test-site --force
+```
+
+Removing one:
+
+```bash
+docker exec -it waterwheel-agent delete-test-skills -n login-test-site
+```
+
+```text
+Deleted skill: login-test-site
+Done. Deleted 1 skill(s), skipped 0.
+```
+
+`-n` takes a comma-separated list; `-a` clears every user skill and touches no built-in. A name that
+matches nothing is reported and skipped rather than treated as an error.
+
+:::warning[`delete-builtin-skills` removes a capability from the image]
+Deleting a built-in is occasionally the right call — you have written a replacement and want only one
+of the two active. But the shipped skills exist because the agent handles those interactions poorly
+without them, and the only way back is recreating the container. There is deliberately no `-a` for
+built-ins; each must be named exactly.
+:::
+
+## Gotchas
+
+| Symptom | Cause |
+| --- | --- |
+| Skill file arrives truncated or mangled | `-it` was used while piping. Every command reading stdin needs plain `-i`. |
+| Skill never triggers | The description does not read as a trigger for the wording your tests use — or the skill is a requirement and the task should name it outright. |
+| Skill is missing after loading | The front-matter `name` starts with `ww:`, which is reserved; such a skill is skipped. |
+| Deleting by name reports nothing to delete | The CLI matches the **folder** name, which may differ from the front-matter `name`. `display-test-skills` shows folder names. |
+| A skill body's instructions are being ignored mid-run | The body is long and unemphatic. Put the load-bearing constraints early and mark them. |
+
+## Next Steps
+
+- [Manage Test Tasks](./test-task-manual) — front matter, flow, statuses, and the authoring patterns
+  a skill gets called from.
+- [Chain Tests Together](./chain-tests-together) — the context layers a shared skill reads its inputs
+  from.
+- [Command Reference](./usage) — every option for the four skill commands.
+- [Token Efficiency](./token-efficiency) — why loading instructions on demand keeps a suite cheap.

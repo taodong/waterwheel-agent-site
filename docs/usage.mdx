@@ -422,7 +422,7 @@ docker exec -it waterwheel-agent get-failure-detail -d
 ## `load-test-skills` Command
 <Since version="1.4.0" />
 
-`load-test-skills` creates a skill folder named `<skill-name>` under the agent's skills directory and writes content read from stdin into a `SKILL.md` inside it. This lets you push a skill into the agent without editing files in place. An existing skill is left untouched unless you pass `--force`.
+`load-test-skills` creates a skill folder named `<skill-name>` under the agent's skills directory and writes content read from stdin into a `SKILL.md` inside it. This lets you push a skill into the agent without editing files in place. An existing skill is left untouched unless you pass `--force`. For what belongs in a `SKILL.md`, see [Create Test Skills](./create-test-skills).
 
 ```shell
 load-test-skills -name <skill-name> [--force]
