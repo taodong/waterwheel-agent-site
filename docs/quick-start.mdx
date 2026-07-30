@@ -246,7 +246,7 @@ Use [`upload-test-task`](./usage#upload-test-task-command) to create a markdown
 task from stdin, and [`upload-instruction-file`](./usage#upload-instruction-file-command)
 for instruction and config files. You can remove the bundled sample — or any
 other task — with `manage-test-files delete` and `manage-test-files clear`. See
-the [Usage](./usage#manage-test-files-command) guide for the full command reference.
+the [Command Reference](./usage#manage-test-files-command) for all the options.
 :::
 
 ## 6. Check the Results
@@ -279,7 +279,13 @@ docker rm -f waterwheel-agent
 
 ## Next Steps
 
-- [Usage](./usage) and [Manage Test Tasks](./test-task-manual) — how to use the agent to test your own website.
+- [Write Your First Test](./write-your-first-test) — write a test of your own, run it against your
+  website, and read the failure report. Start here.
+- [Chain Tests Together](./chain-tests-together) — run several tests in order, control their
+  dependencies, and pass values between them.
+- [Manage Test Tasks](./test-task-manual) — the reference for front matter, flow fields, and test
+  statuses.
+- [Command Reference](./usage) — every container command, with all options.
 - [Run through Docker Compose](./advanced-usage) — bring the agent up with your own instruction files, tasks, and
   configuration mounted from the host.
 - [Run through a code agent](./agent-loops) — pair Waterwheel with a code agent such as Claude Code for an autonomous

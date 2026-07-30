@@ -6,6 +6,12 @@ sidebar_position: 3
 
 # Manage Test Tasks
 
+:::tip[Looking for a worked example?]
+[Write Your First Test](./write-your-first-test) walks through authoring a single test, running it,
+and reading the failure report. [Chain Tests Together](./chain-tests-together) builds a two-test
+chain with global context, preset context, and a `flow`. This page is the reference behind both.
+:::
+
 All test tasks scheduled to run by the agent must be plain-text Markdown (`.md`) files placed under the `/agent/tasks` directory.
 The agent runs all tests in sequence, following their natural dependencies.
 
@@ -47,6 +53,11 @@ Run the registration and activation flow.
 - **`id`** _(optional)_
   - Test identifier, stored as text.
   - If omitted, the filename is used.
+  - **Must be unique across all task files.** A duplicate `id` is a fatal error: the run stops
+    immediately with a message naming both files, for example
+    `Duplicate task id "1" found in "wikipedia-search.md" and "find-article.md"`. Watch for this when
+    you add a new test alongside ones already loaded in the container, since each file was probably
+    numbered from `1` in isolation.
 
 
 ### Custom Fields
@@ -427,6 +438,7 @@ Before committing a new task file:
 - [ ] File has the `.md` extension.
 - [ ] YAML front matter is valid and enclosed by `---`.
 - [ ] Front-matter contains only `name`, `id`, and custom metadata — no `node`, `required`, or `ignore`.
+- [ ] The `id` is not already used by another task file in `/agent/tasks`.
 - [ ] Any extra metadata uses non-reserved keys (`name`, `id` are reserved).
 - [ ] The test body clearly describes the actions to take and the expected outcomes.
 
