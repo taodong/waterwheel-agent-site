@@ -1,0 +1,112 @@
+---
+title: Configuration Files
+description: The files under /agent/instructions that control the agent's global context, preset context, domain allowlist, and extra instructions.
+sidebar_position: 2
+---
+
+# Configuration Files
+
+The files under `agent/instructions` (mapped to `/agent/instructions` in the
+container) control how the agent behaves. They are reloaded every time `run-qa`
+is called, so you can edit them on the host and simply start the next run — no
+container restart needed. The most commonly tuned files are described below.
+
+## `global-context.json`
+
+Static values shared across **every** test in the run — base URLs, tenant IDs,
+shared accounts, and similar constants. The values are injected into the agent's
+system prompt as global variables, so any test can reference them.
+
+It is a plain JSON object and supports nested values via dotted keys.
+
+```json title="global-context.json"
+{
+    "TEST_URL": "https://www.wikipedia.org",
+    "LOGIN_URL": "https://www.wikipedia.org/login",
+    "user": {
+        "username": "qa_user"
+    }
+}
+```
+
+You can edit this file directly, or manage it from inside the container with the
+[`manage-global-constants`](./usage.mdx#manage-global-constants-command) command. See
+[Global Context](./test-task-manual.md#a-global-context--static-values-shared-across-all-tests)
+for how tests consume these values.
+
+## `preset-context.json`
+
+Per-run configuration with two independent, optional sections:
+
+- **`data`** — seed values placed in the agent's context store **before** the
+  first task runs. Unlike global context, these are not injected into the system
+  prompt; the agent reads and overwrites them as tests run, which makes them
+  useful for default credentials or feature flags a test can later change.
+- **`flow`** — the execution order of your tasks and the dependencies between
+  them. Keeping the flow here (rather than in the `.md` files) lets you reuse the
+  same task files across different suites and environments.
+
+```json title="preset-context.json"
+{
+    "data": {
+        "admin_username": "qa_user",
+        "admin_password": "s3cret",
+        "feature_new_checkout": true
+    },
+    "flow": [
+        { "file": "login.md", "node": 1 },
+        { "file": "checkout.md", "node": 2, "required": [1] }
+    ]
+}
+```
+
+You can edit this file directly, or manage it with the
+[`preset-context`](./usage.mdx#preset-context-command) command. See
+[Preset context](./test-task-manual.md#b-preset-context-default-values-and-flow-control)
+and [Define Test Flow](./test-task-manual.md#define-test-flow) for full details.
+
+## `allowed-domains.yaml`
+
+The browser domain allowlist. The agent may only navigate to origins listed under
+`allowed`; if a test tries to reach any other URL, it fails immediately. This
+keeps test runs contained to the sites you intend to exercise.
+
+```yaml title="allowed-domains.yaml"
+allowed:
+  - https://*.wikipedia.org
+  - http://host.docker.internal:8080
+```
+
+See [URL Permissions](../how-it-works/mcp-guide.mdx#url-permissions) for the matching rules and
+behaviour.
+
+## `extra-instruction.md`
+
+Free-form Markdown appended to the instructions for **every** test in the run.
+Use it for global rules that apply across all tasks.
+
+Its most common use is testing a website hosted on your **local machine**. Inside
+the container, `localhost` refers to the container itself, not your host, so a
+locally hosted site is reached at `host.docker.internal`. Add a rewriting rule so
+the agent translates `localhost` URLs automatically:
+
+```markdown title="extra-instruction.md"
+# Extra Test Instruction
+
+## Global Rules
+
+- **URL Rewriting:** Any URL containing `http://localhost` encountered during the
+  test (in page content, emails, or links) MUST be rewritten to use
+  `http://host.docker.internal` before navigating. For example,
+  `http://localhost:8080/confirm-email?token=abc` becomes
+  `http://host.docker.internal:8080/confirm-email?token=abc`. Never navigate to a
+  `localhost` URL directly.
+```
+
+Make sure the corresponding `host.docker.internal` origin is also present in
+`allowed-domains.yaml`, otherwise the rewritten URL will be blocked.
+
+:::tip
+The [`config-agent`](./usage.mdx#config-agent-command) command can generate and
+maintain `extra-instruction.md` for you when you enable **Test web app on host**.
+:::

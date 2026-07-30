@@ -2,14 +2,14 @@
 id: chain-tests-together
 title: Chain Tests Together
 sidebar_label: Chain Tests Together
-sidebar_position: 2.5
+sidebar_position: 3
 description: Run two dependent tests in order, share static values through global context, seed inputs with preset context, and pass a discovered value from one test to the next.
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-[Write Your First Test](./write-your-first-test) covered a single, self-contained test. Real
+[Write Your First Test](./write-your-first-test.mdx) covered a single, self-contained test. Real
 applications rarely work that way: you register before you log in, log in before you check out, and
 create an order before you can cancel it.
 
@@ -31,8 +31,8 @@ lines. Waiting for the two runs to finish is cut; all command output plays at no
 </small>
 
 :::info[Before you start]
-You need a running, configured container — [Quick Start](./quick-start) steps 1 to 3 — and the
-workflow from [Write Your First Test](./write-your-first-test) should already be familiar, since this
+You need a running, configured container — [Quick Start](./quick-start.mdx) steps 1 to 3 — and the
+workflow from [Write Your First Test](./write-your-first-test.mdx) should already be familiar, since this
 guide does not re-explain uploading tasks or setting domain permissions.
 :::
 
@@ -55,7 +55,7 @@ upstream account-creation test, and the file itself does not move a character.
 Global context is injected into the agent's system prompt, so tests can refer to those names
 directly. Preset and runtime values live in the context store, and tests reference them with a
 `context.` prefix — `${context.search_term}`. See
-[Pass Data Between Tests](./test-task-manual#pass-data-between-tests) for the full rules.
+[Pass Data Between Tests](../reference/test-task-manual.md#pass-data-between-tests) for the full rules.
 
 :::tip[Name your layers apart]
 Use `UPPERCASE` for global constants and lowercase or camelCase for preset and runtime values. Both
@@ -84,7 +84,7 @@ docker exec -it waterwheel-agent manage-global-constants list
 
 Comma-separate to set several at once, and use dotted keys for nested values —
 `user.username=qa_user` becomes `{ "user": { "username": "qa_user" } }`. See
-[`manage-global-constants`](./usage#manage-global-constants-command).
+[`manage-global-constants`](../reference/usage.mdx#manage-global-constants-command).
 
 ## 2. Seed a Preset Value
 
@@ -327,7 +327,7 @@ both tests went green.
 
 To pull the shared values out for use outside the container — reusing a generated account on your
 next run, for example — use
-[`output-context-variables`](./usage#output-context-variables-command), which prints them as flat
+[`output-context-variables`](../reference/usage.mdx#output-context-variables-command), which prints them as flat
 JSON:
 
 ```bash
@@ -398,18 +398,18 @@ while `skipped` means *the breakage happened further upstream*. Both differ from
 means you excluded the test yourself with `"ignore": true` in the flow.
 
 Put step 1 back, re-upload, and re-run to return to green. See
-[Dependency Check Rules](./test-task-manual#dependency-check-rules) for the complete evaluation
+[Dependency Check Rules](../reference/test-task-manual.md#dependency-check-rules) for the complete evaluation
 order.
 
 ## Next Steps
 
-- [Create Test Skills](./create-test-skills) — extract a flow every test in the chain repeats, such
+- [Create Test Skills](./create-test-skills.mdx) — extract a flow every test in the chain repeats, such
   as login, into a reusable skill instead of copying the prose.
-- [Manage Test Tasks](./test-task-manual) — the full reference for front matter, flow fields,
+- [Manage Test Tasks](../reference/test-task-manual.md) — the full reference for front matter, flow fields,
   every test status, and the authoring patterns for multi-node suites.
-- [Command Reference](./usage) — all the options for
-  [`manage-global-constants`](./usage#manage-global-constants-command) and
-  [`preset-context`](./usage#preset-context-command).
-- [Token Efficiency](./token-efficiency) — how to group chained tests so a suite stays cheap.
-- [Run through a code agent](./agent-loops) — let a code agent maintain the chain and fix what it
+- [Command Reference](../reference/usage.mdx) — all the options for
+  [`manage-global-constants`](../reference/usage.mdx#manage-global-constants-command) and
+  [`preset-context`](../reference/usage.mdx#preset-context-command).
+- [Token Efficiency](../guides/token-efficiency.md) — how to group chained tests so a suite stays cheap.
+- [Run through a code agent](../guides/agent-loops.mdx) — let a code agent maintain the chain and fix what it
   breaks.

@@ -1,7 +1,7 @@
 ---
 title: Tuning and Beyond QA
 description: How to tune the Waterwheel agent's prompts and repurpose it for tasks beyond web testing.
-sidebar_position: 10
+sidebar_position: 4
 ---
 
 # Tuning and Beyond QA
@@ -24,11 +24,11 @@ The system prompt contains up to three pieces of information:
 
 #### Task Prompt
 
-A task prompt describes the objective and steps of a single task. Task prompts are stored as individual Markdown files under `/agent/tasks`. Refer to the [Manage Test Tasks](./test-task-manual) section for file format requirements.
+A task prompt describes the objective and steps of a single task. Task prompts are stored as individual Markdown files under `/agent/tasks`. Refer to the [Manage Test Tasks](../reference/test-task-manual.md) section for file format requirements.
 
 #### Compressed Task Prompt
 
-A compressed task prompt is generated automatically and replaces the task prompt whenever a compression occurs. It contains a summary of all completed verifications and known context values up to that point. See [Token Efficiency Recommendations](./token-efficiency) for details on how compression is triggered.
+A compressed task prompt is generated automatically and replaces the task prompt whenever a compression occurs. It contains a summary of all completed verifications and known context values up to that point. See [Token Efficiency Recommendations](./token-efficiency.md) for details on how compression is triggered.
 
 ### Prompt Analysis
 

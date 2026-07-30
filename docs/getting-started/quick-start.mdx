@@ -35,11 +35,11 @@ as a single code block.
 This guide uses plain `docker run` and `docker exec`. Two alternatives are
 available once you know what you need:
 
-- **[Run through Docker Compose](./advanced-usage)** — mount your own instruction
+- **[Run through Docker Compose](../guides/docker-compose.mdx)** — mount your own instruction
   files, tasks, and configuration from the host and bring the agent up with
   `docker compose up -d`. Use this when you want the agent fully customized and
   reproducible.
-- **[Run through a code agent](./agent-loops)** — install the Waterwheel skills
+- **[Run through a code agent](../guides/agent-loops.mdx)** — install the Waterwheel skills
   into a code agent such as Claude Code and let it install, configure, and drive
   the agent for you in an autonomous test-and-fix loop.
 :::
@@ -62,7 +62,7 @@ running before you continue.
 
 ### AI API Key
 The agent must connect to an LLM to perform QA tasks, so you need to provide your own AI API key.
-Currently supported AI providers include `Anthropic`, `OpenAI`, `Gemini`, `DeepSeek` and Ollma hosted `Gemma 4`.
+Currently supported AI providers include `Anthropic`, `OpenAI`, `Gemini`, `DeepSeek` and Ollama hosted `Gemma 4`.
 
 :::note[Gemma 4 Support]
 For simple QA tasks, you can use `Ollama`-hosted `Gemma 4`.
@@ -167,7 +167,7 @@ docker run -d --name waterwheel-agent ^
 
 Point the agent at the provider your API key belongs to. Pick your provider
 below — each command uses the model we recommend in the
-[Provider Configuration Guide](./provider-guide), together with the
+[Provider Configuration Guide](../reference/provider-guide.mdx), together with the
 token-`efficiency` mode.
 
 <Tabs groupId="provider">
@@ -204,7 +204,7 @@ docker exec waterwheel-agent config-ai-provider --provider deepseek --model deep
 :::tip[Need more than a provider and model?]
 For provider-specific extras — an `Ollama`-hosted `Gemma 4` base URL, or a
 localized system prompt — use the interactive
-[`config-agent`](./usage#config-agent-command) command instead:
+[`config-agent`](../reference/usage.mdx#config-agent-command) command instead:
 
 ```bash
 docker exec -it waterwheel-agent config-agent
@@ -215,7 +215,7 @@ docker exec -it waterwheel-agent config-agent
 After you save a provider mode, switching to a **different** provider (for
 example Anthropic → DeepSeek) requires creating a new container. You can still
 switch between modes of the same provider at any time. See the
-[Provider Configuration Guide](./provider-guide) for recommended provider settings.
+[Provider Configuration Guide](../reference/provider-guide.mdx) for recommended provider settings.
 :::
 
 ## 4. Verify Your Configuration
@@ -242,11 +242,11 @@ docker exec -it waterwheel-agent run-qa
 ```
 
 :::tip[Adding your own tasks]
-Use [`upload-test-task`](./usage#upload-test-task-command) to create a markdown
-task from stdin, and [`upload-instruction-file`](./usage#upload-instruction-file-command)
+Use [`upload-test-task`](../reference/usage.mdx#upload-test-task-command) to create a markdown
+task from stdin, and [`upload-instruction-file`](../reference/usage.mdx#upload-instruction-file-command)
 for instruction and config files. You can remove the bundled sample — or any
 other task — with `manage-test-files delete` and `manage-test-files clear`. See
-the [Command Reference](./usage#manage-test-files-command) for all the options.
+the [Command Reference](../reference/usage.mdx#manage-test-files-command) for all the options.
 :::
 
 ## 6. Check the Results
@@ -270,8 +270,8 @@ docker exec -it waterwheel-agent get-failure-detail
 
 If you need to change your AI provider, uninstall the agent and reconfigure it from step 1. Removing the container also
 discards its test tasks and results, so export anything you want to keep first — see
-[`output-context-variables`](./usage#output-context-variables-command) and
-[`check-test-result`](./usage#check-test-result-command).
+[`output-context-variables`](../reference/usage.mdx#output-context-variables-command) and
+[`check-test-result`](../reference/usage.mdx#check-test-result-command).
 
 ```bash
 docker rm -f waterwheel-agent
@@ -279,14 +279,14 @@ docker rm -f waterwheel-agent
 
 ## Next Steps
 
-- [Write Your First Test](./write-your-first-test) — write a test of your own, run it against your
+- [Write Your First Test](./write-your-first-test.mdx) — write a test of your own, run it against your
   website, and read the failure report. Start here.
-- [Chain Tests Together](./chain-tests-together) — run several tests in order, control their
+- [Chain Tests Together](./chain-tests-together.mdx) — run several tests in order, control their
   dependencies, and pass values between them.
-- [Manage Test Tasks](./test-task-manual) — the reference for front matter, flow fields, and test
+- [Manage Test Tasks](../reference/test-task-manual.md) — the reference for front matter, flow fields, and test
   statuses.
-- [Command Reference](./usage) — every container command, with all options.
-- [Run through Docker Compose](./advanced-usage) — bring the agent up with your own instruction files, tasks, and
+- [Command Reference](../reference/usage.mdx) — every container command, with all options.
+- [Run through Docker Compose](../guides/docker-compose.mdx) — bring the agent up with your own instruction files, tasks, and
   configuration mounted from the host.
-- [Run through a code agent](./agent-loops) — pair Waterwheel with a code agent such as Claude Code for an autonomous
+- [Run through a code agent](../guides/agent-loops.mdx) — pair Waterwheel with a code agent such as Claude Code for an autonomous
   test-and-fix loop.

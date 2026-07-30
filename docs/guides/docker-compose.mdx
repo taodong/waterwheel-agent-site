@@ -1,0 +1,150 @@
+---
+title: Install with Docker Compose
+description: Bring the Waterwheel agent up with Docker Compose, mounting your own tasks, instructions, and results from the host.
+sidebar_position: 1
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Install with Docker Compose
+
+To fully customize the Waterwheel agent in a Docker environment, you can use Docker Compose to bring up the container using the instructions in this document.
+
+These instructions work on **macOS / Linux** and **Windows (PowerShell)**. Only
+the folder-setup script in step 1 differs between platforms; use the tabs to pick
+your shell. All `docker compose` commands are identical everywhere.
+
+## Installation
+ 
+:::note
+All files mentioned in this section are bundled in [waterwheel-installer-1.3.0.zip](/files/installation/waterwheel-installer-1.3.0.zip). Download it and extract its contents before proceeding.
+:::
+ 
+### 1. Create the Folder Structure
+ 
+
+Run the helper script for your platform to create the local folder structure used
+for Docker volume mapping. If you omit the path, the current directory is used; if
+the path does not exist, it is created for you.
+
+<Tabs groupId="os">
+<TabItem value="unix" label="macOS / Linux" default>
+
+Use [create-sync-subfolders.sh](/files/installation/create-sync-subfolders.sh):
+
+```shell
+chmod +x create-sync-subfolders.sh
+./create-sync-subfolders.sh /path/to/sync
+```
+
+</TabItem>
+<TabItem value="powershell" label="Windows (PowerShell)">
+
+Use [create-sync-subfolders.ps1](/files/installation/create-sync-subfolders.ps1):
+
+```powershell
+./create-sync-subfolders.ps1 C:\path\to\sync
+```
+
+:::tip
+If PowerShell blocks the script, allow it for the current session first:
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+:::
+
+</TabItem>
+</Tabs>
+
+This produces the directory layout that Docker Compose maps into the container:
+
+```text
+<sync>/
+└── agent/
+    ├── instructions/   → /agent/instructions  (config files)
+    ├── tasks/          → /agent/tasks          (your .md test files)
+    └── outputs/        → /agent/outputs        (results and logs written by the agent)
+```
+
+Because these folders are bind-mounted, anything you place under
+`agent/instructions` on the host becomes the agent's runtime configuration. See
+[Configuration Files](../reference/configuration-files.mdx) for what each file does.
+ 
+### 2. Configure Environment Variables
+ 
+Open [dot_env.txt](/files/installation/dot_env.txt) and fill in the following variables.
+
+```shell
+WATERWHEEL_SYNC_VOLUME_PATH=${to_fill} # The sync folder created in step 1 (e.g. /path/to/sync or C:\path\to\sync)
+API_PROVIDER=${to_fill}                # AI provider
+AI_MODEL=${to_fill}                    # AI model
+AI_API_KEY=${to_fill}                  # AI API key
+```
+ 
+### 3. Place the Environment File
+ 
+Rename `dot_env` to `.env` and place it in the same directory as [docker-compose.yml](/files/installation/docker-compose.yml).
+ 
+### 4. Copy Instruction Files
+ 
+Copy the following three files into `agent/instructions` under `/path/to/sync`.
+
+- [allowed-domains.yaml](/files/installation/allowed-domains.yaml)
+- [email-permissions.yaml](/files/installation/email-permissions.yaml)
+- [global-context.json](/files/installation/global-context.json)
+
+You can further tune the run by adding the optional `preset-context.json` and
+`extra-instruction.md` files to the same folder. See
+[Configuration Files](../reference/configuration-files.mdx) for details.
+
+### 5. Copy Task File
+ 
+Copy <a href="/files/installation/test-wikipedia-english.md" download>test-wikipedia-english.md</a> into `/path/to/sync/agent/tasks`.
+
+:::note
+You can also try more complex chained test cases by copying <a href="/files/installation/1_test_wikipedia_search.md" download>1_test_wikipedia_search.md</a> and <a href="/files/installation/2_test_wikipedia_navigate.md" download>2_test_wikipedia_navigate.md</a> into `/path/to/sync/agent/tasks`.
+To enable the chaining, you must also copy <a href="/files/installation/preset-context.json" download>preset-context.json</a> into `/path/to/sync/agent/instructions` — its `flow` section defines the execution order and dependency between the two tasks. See [Configuration Files](../reference/configuration-files.mdx) for details.
+However, the API cost may be above $1 per test without configuration tuning.
+:::
+
+### 6. Deploy the Docker Container
+ 
+From the same directory as `docker-compose.yml`, run:
+ 
+```shell
+docker compose up -d
+```
+ 
+## Verify Installation
+ 
+To verify the installation, run the following command on your local machine and confirm no errors are reported in `/path/to/sync/agent/outputs/agent.log`.
+ 
+```shell
+docker compose exec waterwheel-agent run-qa --dry-run
+```
+ 
+## Execute Tests
+ 
+To execute all tests under `/path/to/sync/agent/tasks`, run the following command on your local machine.
+ 
+```shell
+docker compose exec waterwheel-agent run-qa
+```
+ 
+Once the command completes, check the results at `/path/to/sync/agent/outputs/test-results.json`.
+
+:::warning
+OpenAI, even with its latest `gpt-5.5` model, has difficulty differentiating between a link and its label. You may experience test failure if OpenAI is your configured AI provider. See our [Provider Guide](../reference/provider-guide.mdx#openai) for details.
+:::
+
+## Configuration Files
+
+The files under `agent/instructions` (mapped to `/agent/instructions` in the
+container) control how the agent behaves. They are reloaded every time `run-qa`
+is called, so you can edit them on the host and simply start the next run — no
+container restart needed.
+
+See [Configuration Files](../reference/configuration-files.mdx) for what each file
+does, its format, and the commands that maintain it.

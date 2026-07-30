@@ -1,7 +1,7 @@
 ---
 title: Token Efficiency
 description: Configuration practices for teams looking to reduce token usage and API call volume.
-sidebar_position: 9
+sidebar_position: 3
 ---
 
 # Token Efficiency
@@ -82,4 +82,4 @@ Based on our internal data, no real-world test has required more than 80 API cal
 
 ### Disable Rate Limit Retry
 
-As shown in our [AI Benchmark](./benchmark-report), the agent's token usage is consistently flat with only occasional spikes when handling large content. Under normal conditions, usage should not approach any provider rate limit. If you prefer fast failure over automatic retry in the rare event of rate limiting, disable retries by setting `RATE_LIMIT_RETRY=0`.
+As shown in our [AI Benchmark](../how-it-works/benchmark-report.mdx), the agent's token usage is consistently flat with only occasional spikes when handling large content. Under normal conditions, usage should not approach any provider rate limit. If you prefer fast failure over automatic retry in the rare event of rate limiting, disable retries by setting `RATE_LIMIT_RETRY=0`.

@@ -50,6 +50,57 @@ const config: Config = {
     ],
   ],
 
+  plugins: [
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        // The docs were reorganised into categories; keep every pre-category
+        // URL resolving. Redirect pages are only emitted by `npm run build`,
+        // not by `npm start`.
+        redirects: [
+          // The docs landing page is Quick Start.
+          {from: '/docs', to: '/docs/getting-started/quick-start'},
+          {from: '/docs/quick-start', to: '/docs/getting-started/quick-start'},
+          {
+            from: '/docs/write-your-first-test',
+            to: '/docs/getting-started/write-your-first-test',
+          },
+          {
+            from: '/docs/chain-tests-together',
+            to: '/docs/getting-started/chain-tests-together',
+          },
+          {
+            from: '/docs/create-test-skills',
+            to: '/docs/getting-started/create-test-skills',
+          },
+          {from: '/docs/advanced-usage', to: '/docs/guides/docker-compose'},
+          {from: '/docs/agent-loops', to: '/docs/guides/agent-loops'},
+          {from: '/docs/token-efficiency', to: '/docs/guides/token-efficiency'},
+          {from: '/docs/tuning', to: '/docs/guides/tuning'},
+          {
+            from: '/docs/test-task-manual',
+            to: '/docs/reference/test-task-manual',
+          },
+          {from: '/docs/usage', to: '/docs/reference/usage'},
+          {
+            from: '/docs/env-vars-reference',
+            to: '/docs/reference/env-vars-reference',
+          },
+          {from: '/docs/provider-guide', to: '/docs/reference/provider-guide'},
+          {from: '/docs/permissions', to: '/docs/how-it-works/permissions'},
+          {from: '/docs/mcp-guide', to: '/docs/how-it-works/mcp-guide'},
+          {
+            from: '/docs/benchmark-report',
+            to: '/docs/how-it-works/benchmark-report',
+          },
+          {from: '/docs/release-notes', to: '/docs/about/release-notes'},
+          {from: '/docs/support', to: '/docs/about/support'},
+          {from: '/docs/license', to: '/docs/about/license'},
+        ],
+      },
+    ],
+  ],
+
   themes: [
     [
       require.resolve('@easyops-cn/docusaurus-search-local'),
@@ -105,7 +156,7 @@ const config: Config = {
           items: [
             {
               label: 'Document',
-              to: '/docs/quick-start',
+              to: '/docs/getting-started/quick-start',
             },
           ],
         },

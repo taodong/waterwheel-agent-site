@@ -2,7 +2,7 @@
 id: usage
 title: Command Reference
 sidebar_label: Command Reference
-sidebar_position: 10.5
+sidebar_position: 3
 description: Full reference for every command available inside the Waterwheel agent container.
 ---
 import Since from '@site/src/components/Since';
@@ -12,7 +12,7 @@ import TabItem from '@theme/TabItem';
 # Command Reference
 
 This page documents every command in the container, listed alphabetically. If you have not run a
-test of your own yet, start with [Write Your First Test](./write-your-first-test) — it walks through
+test of your own yet, start with [Write Your First Test](../getting-started/write-your-first-test.mdx) — it walks through
 the commands you need in the order you need them.
 
 ## Commands
@@ -98,7 +98,7 @@ line to your shell profile (`~/.zshrc`, `~/.bashrc`, or your PowerShell profile)
 :::
 
 :::note[Using Docker Compose]
-If you brought the agent up with [Docker Compose](./advanced-usage), replace
+If you brought the agent up with [Docker Compose](../guides/docker-compose.mdx), replace
 `docker exec ... waterwheel-agent` with `docker compose exec ... waterwheel-agent`
 in every example. The command and its arguments are otherwise identical.
 :::
@@ -176,7 +176,7 @@ Once a provider mode is set, the menu only shows modes belonging to the **same p
 ### Option 2 — Config Domain Permissions
 This option allows users to configure the agent's domain access permissions. If the agent tries to access any URLs not whitelisted through domain permissions, the test fails immediately.
 
-See the [URL Permissions](./mcp-guide#url-permissions) section for full details on configuring allowed domains.
+See the [URL Permissions](../how-it-works/mcp-guide.mdx#url-permissions) section for full details on configuring allowed domains.
 
 ### Option 3 — Test Web App on Host
 If the website under test is hosted on your local machine, for example at http://localhost:8080, enable this option so the agent in the Docker container can interact with it.
@@ -422,7 +422,7 @@ docker exec -it waterwheel-agent get-failure-detail -d
 ## `load-test-skills` Command
 <Since version="1.4.0" />
 
-`load-test-skills` creates a skill folder named `<skill-name>` under the agent's skills directory and writes content read from stdin into a `SKILL.md` inside it. This lets you push a skill into the agent without editing files in place. An existing skill is left untouched unless you pass `--force`. For what belongs in a `SKILL.md`, see [Create Test Skills](./create-test-skills).
+`load-test-skills` creates a skill folder named `<skill-name>` under the agent's skills directory and writes content read from stdin into a `SKILL.md` inside it. This lets you push a skill into the agent without editing files in place. An existing skill is left untouched unless you pass `--force`. For what belongs in a `SKILL.md`, see [Create Test Skills](../getting-started/create-test-skills.mdx).
 
 ```shell
 load-test-skills -name <skill-name> [--force]
@@ -452,7 +452,7 @@ printf '# Login flow\n\nSteps...\n' | \
 
 ## `manage-global-constants` Command
 <Since version="1.1.0" />
-The `manage-global-constants` command provides a simple entry point to configure [global context](./test-task-manual#a-global-context--static-values-shared-across-all-tests) environment variables used by tests.
+The `manage-global-constants` command provides a simple entry point to configure [global context](./test-task-manual.md#a-global-context--static-values-shared-across-all-tests) environment variables used by tests.
 
 ```bash
 manage-global-constants <operation> [args]
@@ -531,7 +531,7 @@ docker exec -it waterwheel-agent manage-test-files clear
 
 The `add` operation resolves its paths **inside** the container, so it is only
 useful when the files are already there — for example under a volume you mounted
-with [Docker Compose](./advanced-usage):
+with [Docker Compose](../guides/docker-compose.mdx):
 
 ```shell
 # Add two markdown files that exist inside the container
@@ -602,7 +602,7 @@ It prints:
 ## `preset-context` Command
 <Since version="1.2.0" />
 
-The `preset-context` command configures [preset context](./test-task-manual#b-preset-context-default-values-and-flow-control), which supplies per-run variable overrides on top of the global context and controls the test flow. It exposes two mutually exclusive families:
+The `preset-context` command configures [preset context](./test-task-manual.md#b-preset-context-default-values-and-flow-control), which supplies per-run variable overrides on top of the global context and controls the test flow. It exposes two mutually exclusive families:
 
 - `variables` manages the seed values used before any task runs.
 - `flow` lists, imports, or clears the test execution flow (the order and dependencies between tasks).
@@ -629,7 +629,7 @@ preset-context <family> [args]
 | `flow.json` | Import a JSON file whose top-level object contains a `flow` array; other properties are ignored and the existing flow is replaced |
 | `clear` | Clear the existing flow; preset values are preserved |
 
-See the [Define Test Flow](./test-task-manual#define-test-flow) section for full details on authoring the flow file.
+See the [Define Test Flow](./test-task-manual.md#define-test-flow) section for full details on authoring the flow file.
 
 ### Examples
 ```shell
@@ -799,7 +799,7 @@ The agent requires at least one test file under `/agent/tasks`. All test files m
 3. Confirm the banner text "Welcome to Wikipedia" is displayed on the English Wikipedia homepage.
 ```
 
-See the [Manage Test Tasks](./test-task-manual) section for full details on authoring test files.
+See the [Manage Test Tasks](./test-task-manual.md) section for full details on authoring test files.
 
 :::info[Only file extension matters]
 There is no required Markdown format for test file structure. Tasks are executed as long as the file extension is `.md`.
@@ -860,7 +860,7 @@ container. Keep any entry containing `*`, `?`, or other shell-special characters
 quoted, exactly as shown above.
 :::
 
-See the [URL Permissions](./mcp-guide#url-permissions) section for full details on configuring allowed domains.
+See the [URL Permissions](../how-it-works/mcp-guide.mdx#url-permissions) section for full details on configuring allowed domains.
 
 ## `stop-qa` Command
 <Since version="1.1.0" />

@@ -44,12 +44,12 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/quick-start">
+            to="/docs/getting-started/quick-start">
             Get Started — it&apos;s free
           </Link>
           <Link
             className={clsx('button button--lg', styles.heroGhostButton)}
-            to="/docs/agent-loops">
+            to="/docs/guides/agent-loops">
             Explore the Agent Loops
           </Link>
         </div>
@@ -152,13 +152,13 @@ function CallToAction() {
               </p>
               <div className={styles.ctaCode}>
                 <CodeBlock language="bash">
-                  docker pull taojdcn/duotail-waterwheel:1.3.0
+                  docker pull taojdcn/duotail-waterwheel:1.4.0
                 </CodeBlock>
               </div>
               <div className={styles.buttons}>
                 <Link
                   className="button button--primary button--lg"
-                  to="/docs/quick-start">
+                  to="/docs/getting-started/quick-start">
                   Read the Quick Start
                 </Link>
               </div>
@@ -181,7 +181,7 @@ function CallToAction() {
               <div className={styles.buttons}>
                 <Link
                   className="button button--secondary button--lg"
-                  to="/docs/agent-loops">
+                  to="/docs/guides/agent-loops">
                   Explore Agent Loops
                 </Link>
               </div>

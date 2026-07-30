@@ -1,7 +1,7 @@
 ---
 title: Agent Permissions
 description: How Waterwheel agent access is constrained across file system, MCP, URL, email, and scripting layers.
-sidebar_position: 5
+sidebar_position: 1
 ---
 
 # Agent Permissions
@@ -49,7 +49,7 @@ allowed:
   - https://en.wikipedia.org
 ```
 
-See the [Playwright MCP](./mcp-guide#playwright-mcp) section for full configuration details.
+See the [Playwright MCP](./mcp-guide.mdx#playwright-mcp) section for full configuration details.
 
 ### Email Access
 

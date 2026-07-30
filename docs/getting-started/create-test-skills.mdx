@@ -2,7 +2,7 @@
 id: create-test-skills
 title: Create Test Skills
 sidebar_label: Create Test Skills
-sidebar_position: 2.7
+sidebar_position: 4
 description: Write reusable test skills to teach the agent a tricky interaction once and to share a repeated flow across tests without copying prose.
 ---
 
@@ -21,9 +21,9 @@ code — a login helper, a workaround for a widget the browser automation reads 
 stays readable by anyone on the team, and lives in exactly one file.
 
 :::info[Before you start]
-You need a running, configured container — [Quick Start](./quick-start) steps 1 to 3 — and you should
+You need a running, configured container — [Quick Start](./quick-start.mdx) steps 1 to 3 — and you should
 have written and run a test of your own, as in
-[Write Your First Test](./write-your-first-test). This guide does not re-explain uploading tasks,
+[Write Your First Test](./write-your-first-test.mdx). This guide does not re-explain uploading tasks,
 domain permissions, or reading results.
 :::
 
@@ -41,7 +41,7 @@ procedure*, the second is an *abstracted process*.
 
 :::note[Two different things are called "skills"]
 This page is about **test skills**, which live inside the agent container and instruct the test
-agent. They are unrelated to the [Waterwheel skills](./agent-loops) you install into a code agent
+agent. They are unrelated to the [Waterwheel skills](../guides/agent-loops.mdx) you install into a code agent
 such as Claude Code, which drive the container from the outside.
 :::
 
@@ -176,8 +176,8 @@ Four things make this reusable rather than merely extracted:
 - **It takes an argument.** `<user>` is a placeholder the calling test fills in, so one skill serves
   `testuser`, `admin_user`, and whatever account you add next.
 - **It reads its inputs from context, not from itself.** No credential is written in the file.
-  `LOGIN_URL` and `TEST_URL` are [global constants](./chain-tests-together#1-set-the-global-context)
-  and the accounts are [preset context](./chain-tests-together#2-seed-a-preset-value) values — so the
+  `LOGIN_URL` and `TEST_URL` are [global constants](./chain-tests-together.mdx#1-set-the-global-context)
+  and the accounts are [preset context](./chain-tests-together.mdx#2-seed-a-preset-value) values — so the
   same skill authenticates against dev and staging unchanged.
 - **It validates before it acts.** Step 1 fails loudly on a missing account instead of submitting an
   empty form and reporting a confusing login failure.
@@ -297,7 +297,7 @@ What makes this shape of skill work:
 - **It is emphatic where the agent tends to drift.** Bold and "exactly" are not decoration here;
   they mark the instructions that stop being followed first.
 - **It ends by cleaning up.** Releasing the snapshot keeps the run's token cost flat. See
-  [Tuning](./tuning#complete-verification).
+  [Tuning](../guides/tuning.mdx#complete-verification).
 
 Load it the same way, then any test can say *"Click the `Order history` link"* and get the same
 careful behavior every time — that one skill fixes the interaction across your whole suite.
@@ -327,7 +327,7 @@ tool call for a failed test, including the skill load.
 ## Swap Skills Per Environment
 
 The agent reads user skills from `/agent/skills` by default. Point
-[`SKILLS_DIR`](./env-vars-reference) somewhere else and the same tests resolve to a different
+[`SKILLS_DIR`](../reference/env-vars-reference.md) somewhere else and the same tests resolve to a different
 implementation:
 
 ```bash
@@ -349,10 +349,10 @@ Built-in skills are never affected by `SKILLS_DIR`. Repointing it — or mountin
 
 | Command | Does |
 | --- | --- |
-| [`load-test-skills`](./usage#load-test-skills-command) | Create a skill from piped content |
-| [`display-test-skills`](./usage#display-test-skills-command) | List every skill, or print one's `SKILL.md` |
-| [`delete-test-skills`](./usage#delete-test-skills-command) | Remove your skills by name, or all of them |
-| [`delete-builtin-skills`](./usage#delete-builtin-skills-command) | Remove a shipped skill by exact name |
+| [`load-test-skills`](../reference/usage.mdx#load-test-skills-command) | Create a skill from piped content |
+| [`display-test-skills`](../reference/usage.mdx#display-test-skills-command) | List every skill, or print one's `SKILL.md` |
+| [`delete-test-skills`](../reference/usage.mdx#delete-test-skills-command) | Remove your skills by name, or all of them |
+| [`delete-builtin-skills`](../reference/usage.mdx#delete-builtin-skills-command) | Remove a shipped skill by exact name |
 
 Updating a skill needs `--force`, since an existing folder is left alone by default:
 
@@ -403,9 +403,9 @@ built-ins; each must be named exactly.
 
 ## Next Steps
 
-- [Manage Test Tasks](./test-task-manual) — front matter, flow, statuses, and the authoring patterns
+- [Manage Test Tasks](../reference/test-task-manual.md) — front matter, flow, statuses, and the authoring patterns
   a skill gets called from.
-- [Chain Tests Together](./chain-tests-together) — the context layers a shared skill reads its inputs
+- [Chain Tests Together](./chain-tests-together.mdx) — the context layers a shared skill reads its inputs
   from.
-- [Command Reference](./usage) — every option for the four skill commands.
-- [Token Efficiency](./token-efficiency) — why loading instructions on demand keeps a suite cheap.
+- [Command Reference](../reference/usage.mdx) — every option for the four skill commands.
+- [Token Efficiency](../guides/token-efficiency.md) — why loading instructions on demand keeps a suite cheap.

@@ -1,14 +1,14 @@
 ---
 title: Manage Test Tasks
 description: How to author, structure, and organise test task files for the Waterwheel agent.
-sidebar_position: 3
+sidebar_position: 1
 ---
 
 # Manage Test Tasks
 
 :::tip[Looking for a worked example?]
-[Write Your First Test](./write-your-first-test) walks through authoring a single test, running it,
-and reading the failure report. [Chain Tests Together](./chain-tests-together) builds a two-test
+[Write Your First Test](../getting-started/write-your-first-test.mdx) walks through authoring a single test, running it,
+and reading the failure report. [Chain Tests Together](../getting-started/chain-tests-together.mdx) builds a two-test
 chain with global context, preset context, and a `flow`. This page is the reference behind both.
 :::
 

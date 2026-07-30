@@ -9,7 +9,7 @@ description: Author a Waterwheel test in Markdown, load it into the container, r
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-The [Quick Start](./quick-start) runs the sample test that ships inside the image. This guide takes
+The [Quick Start](./quick-start.mdx) runs the sample test that ships inside the image. This guide takes
 the next step: you write a test of your own, load it into the agent, run it, and read the result —
 then break it on purpose to see how failures are diagnosed.
 
@@ -29,7 +29,7 @@ the first two lines. Waiting for the runs to finish is cut; all command output p
 </small>
 
 :::info[Before you start]
-You need a running, configured container — [Quick Start](./quick-start) steps 1 to 3. Everything
+You need a running, configured container — [Quick Start](./quick-start.mdx) steps 1 to 3. Everything
 below assumes `waterwheel-agent` is up and an AI provider is already set. Nothing in this guide
 reinstalls or reconfigures the agent.
 :::
@@ -51,7 +51,7 @@ docker exec -it waterwheel-agent manage-test-files delete test-wikipedia-english
 :::note[Deleting is best effort]
 `manage-test-files delete` accepts a 1-based index or an exact filename. If the sample has a
 different name in your image, take the name from the `list` output above. See
-[`manage-test-files`](./usage#manage-test-files-command) for all operations.
+[`manage-test-files`](../reference/usage.mdx#manage-test-files-command) for all operations.
 :::
 
 ## 2. Write the Test
@@ -78,7 +78,7 @@ id: 1
 The file has two parts: optional YAML front matter, then the instructions. Both `name` and `id` are
 optional — without them the filename is used — but `name` is what shows up in your results, so it is
 worth setting. Any key you add that is not reserved becomes custom metadata in `test-results.json`.
-See [Manage Test Tasks](./test-task-manual) for the full front-matter rules.
+See [Manage Test Tasks](../reference/test-task-manual.md) for the full front-matter rules.
 
 ### What makes a good step
 
@@ -90,7 +90,7 @@ See [Manage Test Tasks](./test-task-manual) for the full front-matter rules.
   can still pass, leaving you believing a check is tighter than it is.
 - **Number your steps.** Numbered steps are cheaper to run than free-form prose, because the agent
   spends fewer tokens working out what you meant. See
-  [Manage Test Tasks](./test-task-manual) for the reasoning.
+  [Manage Test Tasks](../reference/test-task-manual.md) for the reasoning.
 - **Describe intent, not mechanics.** Say "submit the search", not "click the button with id
   `searchButton`". The agent finds the control; hard-coded selectors only make the test brittle.
 
@@ -102,7 +102,7 @@ text with no Markdown styling at all works fine.
 ## 3. Load It Into the Container
 
 Pipe the file in from your host with
-[`upload-test-task`](./usage#upload-test-task-command):
+[`upload-test-task`](../reference/usage.mdx#upload-test-task-command):
 
 <Tabs groupId="os">
 <TabItem value="unix" label="macOS / Linux" default>
@@ -172,7 +172,7 @@ docker exec -it waterwheel-agent set-domain-permission \
   "https://*.wikipedia.org",https://www.google.com
 ```
 
-See [URL Permissions](./mcp-guide#url-permissions) for the full matching rules.
+See [URL Permissions](../how-it-works/mcp-guide.mdx#url-permissions) for the full matching rules.
 
 :::warning[`localhost` never works from inside the container]
 The agent runs inside Docker, so `localhost` means *the container itself*, not your machine. Any
@@ -195,7 +195,7 @@ docker exec -it waterwheel-agent set-domain-permission -l "http://localhost:8080
 ```
 
 Rather than editing every URL by hand, run
-[`enable-test-on-host`](./usage#enable-test-on-host-command) once. It tells the agent to rewrite
+[`enable-test-on-host`](../reference/usage.mdx#enable-test-on-host-command) once. It tells the agent to rewrite
 `localhost` during test runs and fixes your existing allowlist and global constants in place:
 
 ```bash
@@ -251,7 +251,7 @@ docker exec -it waterwheel-agent run-qa
 This is the step that spends tokens. The five-step test above takes well under a minute — the agent
 opens a browser, works through your steps, and writes its results and logs to `/agent/outputs`.
 Longer suites run for several minutes. To abort a run in progress, open a second terminal and use
-[`stop-qa`](./usage#stop-qa-command):
+[`stop-qa`](../reference/usage.mdx#stop-qa-command):
 
 ```bash
 docker exec -it waterwheel-agent stop-qa
@@ -395,21 +395,21 @@ docker run -d --name waterwheel-agent \
 ```
 
 Without that variable, the API Log section is silently omitted from the report — the rest of the
-report is unchanged. See the [environment variable reference](./env-vars-reference).
+report is unchanged. See the [environment variable reference](../reference/env-vars-reference.md).
 :::
 
 Now put step 3 back the way it was, re-upload, and re-run to confirm you are green again.
 
 ## Next Steps
 
-- [Chain Tests Together](./chain-tests-together) — split a journey into dependent tests, share static
+- [Chain Tests Together](./chain-tests-together.mdx) — split a journey into dependent tests, share static
   values through global context, and pass a value discovered by one test to the next.
-- [Create Test Skills](./create-test-skills) — teach the agent a tricky interaction once, and reuse a
+- [Create Test Skills](./create-test-skills.mdx) — teach the agent a tricky interaction once, and reuse a
   repeated flow across tests without copying the prose.
-- [Manage Test Tasks](./test-task-manual) — the full reference for front matter, flow fields, and
+- [Manage Test Tasks](../reference/test-task-manual.md) — the full reference for front matter, flow fields, and
   test statuses.
-- [Command Reference](./usage) — every command in the container, with all options.
-- [Run through Docker Compose](./advanced-usage) — mount your tasks and instruction files from the
+- [Command Reference](../reference/usage.mdx) — every command in the container, with all options.
+- [Run through Docker Compose](../guides/docker-compose.mdx) — mount your tasks and instruction files from the
   host instead of piping them in.
-- [Run through a code agent](./agent-loops) — hand the whole loop to a code agent such as Claude
+- [Run through a code agent](../guides/agent-loops.mdx) — hand the whole loop to a code agent such as Claude
   Code and let it fix what it finds.

@@ -1,7 +1,7 @@
 ---
 title: Release Notes
 description: Version history and upgrade information for the Waterwheel agent.
-sidebar_position: 12
+sidebar_position: 1
 ---
 
 # Release Notes
@@ -21,29 +21,29 @@ docker pull taojdcn/duotail-waterwheel:1.3.0
 ## 1.3.0 — latest
 
 The current release. It makes every part of the agent scriptable and introduces the
-[Waterwheel skills](./agent-loops) for pairing the agent with a code agent in a
+[Waterwheel skills](../guides/agent-loops.mdx) for pairing the agent with a code agent in a
 nested test-and-fix loop.
 
 - **Agent loops & skills** — a set of Claude Code skills that install, configure, and
   drive the agent automatically, enabling an autonomous, test-driven web development
-  workflow. See the new [Agent Loops](./agent-loops) guide.
+  workflow. See the new [Agent Loops](../guides/agent-loops.mdx) guide.
 - **Non-interactive setup** — configure the agent from scripts and CI without the
   interactive prompts of `config-agent`:
-  - [`config-ai-provider`](./usage#config-ai-provider-command) — apply an AI provider
+  - [`config-ai-provider`](../reference/usage.mdx#config-ai-provider-command) — apply an AI provider
     and model directly.
-  - [`set-domain-permission`](./usage#set-domain-permission-command) — generate the
+  - [`set-domain-permission`](../reference/usage.mdx#set-domain-permission-command) — generate the
     browser domain allowlist from a comma-delimited list.
-  - [`enable-test-on-host`](./usage#enable-test-on-host-command) — enable testing
+  - [`enable-test-on-host`](../reference/usage.mdx#enable-test-on-host-command) — enable testing
     against a web app deployed on the host machine.
-  - [`display-ai-config`](./usage#display-ai-config-command) — print the effective
+  - [`display-ai-config`](../reference/usage.mdx#display-ai-config-command) — print the effective
     provider, model, and token mode as JSON.
 - **Programmatic test & instruction management:**
-  - [`upload-test-task`](./usage#upload-test-task-command) and
-    [`upload-instruction-file`](./usage#upload-instruction-file-command) — create or
+  - [`upload-test-task`](../reference/usage.mdx#upload-test-task-command) and
+    [`upload-instruction-file`](../reference/usage.mdx#upload-instruction-file-command) — create or
     replace markdown tasks and instruction/config files from stdin.
-  - [`reset-test-config`](./usage#reset-test-config-command) — delete test tasks
+  - [`reset-test-config`](../reference/usage.mdx#reset-test-config-command) — delete test tasks
     and/or instruction files to return to a clean state.
-  - [`output-context-variables`](./usage#output-context-variables-command) — export
+  - [`output-context-variables`](../reference/usage.mdx#output-context-variables-command) — export
     context values produced by the latest run as flat JSON for reuse outside the
     container.
 
@@ -59,9 +59,9 @@ Builds on `1.1.0` with richer test configuration and new helper commands.
   and to configure the **test flow** (execution order and dependencies between
   tasks).
 - **New commands:**
-  - [`manage-test-files`](./usage#manage-test-files-command) — add, list, and
+  - [`manage-test-files`](../reference/usage.mdx#manage-test-files-command) — add, list, and
     remove the markdown task files the agent runs.
-  - [`preset-context`](./usage#preset-context-command) — manage the context
+  - [`preset-context`](../reference/usage.mdx#preset-context-command) — manage the context
     variables and test flow stored in `preset-context.json`.
 
 ```shell
@@ -74,17 +74,17 @@ Added multi-platform support and the first set of command-line tools.
 
 - **Multi-platform images** — published for both `linux/amd64` and `linux/arm64`.
 - **New commands:**
-  - [`stop-qa`](./usage#stop-qa-command) — stop the current QA run.
-  - [`check-test-result`](./usage#check-test-result-command) — check the latest
+  - [`stop-qa`](../reference/usage.mdx#stop-qa-command) — stop the current QA run.
+  - [`check-test-result`](../reference/usage.mdx#check-test-result-command) — check the latest
     test results.
-  - [`get-failure-detail`](./usage#get-failure-detail-command) — print a
+  - [`get-failure-detail`](../reference/usage.mdx#get-failure-detail-command) — print a
     diagnostic report for the first failed test.
-  - [`config-agent`](./usage#config-agent-command) — configure the AI provider,
+  - [`config-agent`](../reference/usage.mdx#config-agent-command) — configure the AI provider,
     browser permissions, and access to a test website on the host.
-  - [`manage-global-constants`](./usage#manage-global-constants-command) — manage
+  - [`manage-global-constants`](../reference/usage.mdx#manage-global-constants-command) — manage
     global constants shared across all tests.
   - `manage-context-variables` — manage per-run context variable overrides.
-    *(Replaced by [`preset-context`](./usage#preset-context-command) in 1.2.0.)*
+    *(Replaced by [`preset-context`](../reference/usage.mdx#preset-context-command) in 1.2.0.)*
 
 :::note[Documentation for 1.1.0]
 This site always documents the latest release. To read the documentation that

@@ -16,7 +16,7 @@ export const FeatureList: FeatureItem[] = [
     description: (
       <>
         All test tasks are plain Markdown files — no scripting required. Write
-        automation in plain language. <a href="/docs/test-task-manual">Manage Test Tasks</a>
+        automation in plain language. <a href="/docs/reference/test-task-manual">Manage Test Tasks</a>
       </>
     ),
   },
@@ -28,7 +28,7 @@ export const FeatureList: FeatureItem[] = [
         Handles complex scenarios and large chained test suites without hitting
         token limits. Efficient token handling reduces real-world test costs 
         to pennies per test case.{' '}
-        <a href="/docs/benchmark-report">AI Benchmark</a>
+        <a href="/docs/how-it-works/benchmark-report">AI Benchmark</a>
       </>
     ),
   },
@@ -39,7 +39,7 @@ export const FeatureList: FeatureItem[] = [
       <>
         The agent is isolated through multiple layers of permission controls,
         from the container down to individual tools.{' '}
-        <a href="/docs/permissions">Agent Permissions</a>
+        <a href="/docs/how-it-works/permissions">Agent Permissions</a>
       </>
     ),
   },
@@ -50,7 +50,7 @@ export const FeatureList: FeatureItem[] = [
       <>
         Supports all major AI providers: Claude, OpenAI, Google Gemini, 
         DeepSeek, and Gemma 4.{' '}
-        <a href="/docs/provider-guide">Provider Guide</a>
+        <a href="/docs/reference/provider-guide">Provider Guide</a>
       </>
     ),
   },
@@ -72,7 +72,7 @@ export const FeatureList: FeatureItem[] = [
       <>
         Pair the agent with a code agent to wrap an autonomous browser test
         loop in a test-and-fix coding loop. {' '}
-        <a href="/docs/agent-loops">Agent Loops</a>
+        <a href="/docs/guides/agent-loops">Agent Loops</a>
       </>
     ),
   },
