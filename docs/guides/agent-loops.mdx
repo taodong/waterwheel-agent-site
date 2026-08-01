@@ -63,16 +63,37 @@ npx skills add taodong/duotail-waterwheel-skills@waterwheel-run
 npx skills add taodong/duotail-waterwheel-skills --skill '*'
 ```
 
+### Pinning a version
+
+The commands above track the repository's default branch, so they always fetch the
+latest published skills. Add `#<tag>` before the `@<skill-name>` to pin a release
+instead:
+
+```bash
+# install one skill from a specific release
+npx skills add taodong/duotail-waterwheel-skills#v2.0.0@waterwheel-run
+
+# pin the whole repo to a release
+npx skills add taodong/duotail-waterwheel-skills#v2.0.0 --skill '*'
+```
+
+`#<tag>` accepts any git tag or branch. Pin when a newer release raises the required
+agent image or otherwise changes behavior you are not ready to adopt — `v2.0.0`
+requires agent image `1.4.0`, so pin `#v1.0.0` to stay on the `1.3.0` line. Releases
+are listed on the repository's
+[tags page](https://github.com/taodong/duotail-waterwheel-skills/tags).
+
 ## The skills
 
-The toolkit ships eight skills that the code agent uses to drive the inner loop:
+The toolkit ships nine skills that the code agent uses to drive the inner loop:
 
 | Skill | What it does |
 |---|---|
-| `waterwheel-run` | Runs the complete end-to-end pipeline: agent install, test loading, instruction loading, and the test-and-fix cycle |
+| `waterwheel-run` | Runs the complete end-to-end pipeline: agent install, test loading, instruction loading, test skill loading, and the test-and-fix cycle |
 | `waterwheel-test-and-fix` | Runs the predefined web tests, reports results, identifies failure causes, and applies fixes when authorized |
 | `waterwheel-load-tests` | Reloads the markdown test tasks from the project's task folder into the container |
 | `waterwheel-load-instructions` | Reloads instruction files, configuration, permissions, and localhost testing settings |
+| `waterwheel-load-test-skills` | Reloads the project's user-defined [test skills](../getting-started/create-test-skills.mdx) from the `testSkills` folder into the container (requires agent image `1.4.0`+) |
 | `waterwheel-update-context` | Exports and merges context variables into `preset-context.json` for reuse across tests |
 | `waterwheel-agent-install` | Installs the Waterwheel container with AI provider configuration |
 | `waterwheel-stop-container` | Stops the running container without removing it |
@@ -81,14 +102,14 @@ The toolkit ships eight skills that the code agent uses to drive the inner loop:
 ## Running the pipeline
 
 `waterwheel-run` is the one-shot entry point that ties everything together —
-installing the agent, loading tests and instructions, and then handing control to
-the test-and-fix loop:
+installing the agent, loading tests, instructions, and test skills, and then handing
+control to the test-and-fix loop:
 
 1. **Install** — `waterwheel-agent-install` brings up the container with your AI
    provider configuration.
-2. **Load** — `waterwheel-load-tests` and `waterwheel-load-instructions` push your
-   markdown test tasks, configuration, permissions, and localhost settings into the
-   container.
+2. **Load** — `waterwheel-load-tests`, `waterwheel-load-instructions`, and
+   `waterwheel-load-test-skills` push your markdown test tasks, configuration,
+   permissions, localhost settings, and user-defined test skills into the container.
 3. **Test and fix** — `waterwheel-test-and-fix` runs the inner browser loop, reports
    results, and — when `maxFixAttempts` is greater than zero and a `deployInstruction`
    is provided — diagnoses failures and redeploys fixes before re-running.
@@ -102,7 +123,7 @@ omit a key to keep its default.
 | Key | Default | Purpose |
 |---|---|---|
 | `containerName` | `waterwheel-agent` | Name of the Waterwheel Docker container. Container operations use force-removal, so this must reference only the Waterwheel container. |
-| `imageName` | `taojdcn/duotail-waterwheel:1.3.0` | The Waterwheel agent Docker image to pull. |
+| `imageName` | `taojdcn/duotail-waterwheel:1.4.0` | The Waterwheel agent Docker image to pull. Minimum supported version is `1.4.0`, which adds the `load-test-skills` command `waterwheel-load-test-skills` depends on. |
 | `allowRebuild` | `false` | When `false`, an existing container is only started; when `true`, it is rebuilt if needed. |
 | `aiProvider` | `anthropic` | AI provider for your API key. One of `anthropic`, `openai`, `gemini`, `deepseek`, `gemma`. |
 | `aiModel` | `claude-sonnet-4-6` | Model the agent uses (must be valid for the chosen provider). |
@@ -110,6 +131,7 @@ omit a key to keep its default.
 | `tokenMode` | `efficiency` | Token usage mode. One of `default` or `efficiency` (minimum token usage). |
 | `extraEnvVars` | `[]` | Additional environment variables for the container, as `key=value` or `key` strings. |
 | `taskFolder` | `tasks` | Folder containing your markdown-format test files. |
+| `testSkills` | `none` | Host folder under which each user-defined test skill lives in its own subfolder holding a `SKILL.md`. When set, `waterwheel-load-test-skills` loads every one of them into the agent; `none` loads no test skills. Requires agent image `1.4.0` or newer. |
 | `instructionFolder` | `none` | Folder whose files are copied into `/agent/instructions` in the container, or `none`. |
 | `presetContextFile` | `none` | JSON file installed as preset context, or `none`. |
 | `globalConstantsFile` | `none` | JSON file installed as global context, or `none`. |
@@ -125,7 +147,7 @@ omit a key to keep its default.
 ```json
 {
   "containerName": "waterwheel-agent",
-  "imageName": "taojdcn/duotail-waterwheel:1.3.0",
+  "imageName": "taojdcn/duotail-waterwheel:1.4.0",
   "allowRebuild": false,
   "aiProvider": "anthropic",
   "aiModel": "claude-sonnet-4-6",
@@ -133,6 +155,7 @@ omit a key to keep its default.
   "tokenMode": "efficiency",
   "extraEnvVars": [],
   "taskFolder": "tasks",
+  "testSkills": "none",
   "instructionFolder": "none",
   "presetContextFile": "none",
   "globalConstantsFile": "none",
@@ -148,6 +171,38 @@ omit a key to keep its default.
   "deployInstruction": "none"
 }
 ```
+
+### Adding test skills
+
+Point `testSkills` at a folder in your project where each skill lives in its own
+subfolder holding a single `SKILL.md`:
+
+```text
+test-skills/
+├── login-test-site/
+│   └── SKILL.md
+└── copy-share-link/
+    └── SKILL.md
+```
+
+```json
+{
+  "testSkills": "test-skills"
+}
+```
+
+`waterwheel-load-test-skills` then pushes every one of those skills into the running
+container, and `waterwheel-run` does it as part of the pipeline. Rerun the skill
+after editing a `SKILL.md` — no container restart is needed. See
+[Create Test Skills](../getting-started/create-test-skills.mdx) for how to write one
+and how the agent decides to use it.
+
+:::note
+These are the **test skills** the browser agent uses inside the container — a
+different thing from the Waterwheel skills you install into your code agent. They
+require agent image `1.4.0` or newer; on an older image, leave `testSkills` at
+`none`.
+:::
 
 :::tip[Enable Test and Fix Loop]
 Two keys together turn the outer code-agent loop on: `maxFixAttempts` and
