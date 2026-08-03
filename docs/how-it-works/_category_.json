@@ -1,8 +1,4 @@
 {
   "label": "How It Works",
-  "position": 4,
-  "link": {
-    "type": "generated-index",
-    "description": "How the agent is constrained, which MCPs it drives, and how it performs across AI providers."
-  }
+  "position": 4
 }

@@ -11,16 +11,54 @@ The Waterwheel agent is distributed as a pre-built Docker image, free to use.
 **Docker image:** [taojdcn/duotail-waterwheel](https://hub.docker.com/r/taojdcn/duotail-waterwheel)
 
 :::tip[Use the latest release]
-We recommend always running the latest version, **`1.3.0`**.
+We recommend always running the latest version, **`1.4.0`**.
 
 ```shell
-docker pull taojdcn/duotail-waterwheel:1.3.0
+docker pull taojdcn/duotail-waterwheel:1.4.0
 ```
 :::
 
-## 1.3.0 — latest
+## 1.4.0 — latest
 
-The current release. It makes every part of the agent scriptable and introduces the
+The current release. It adds **test skills** — reusable Markdown instructions the agent
+loads on demand — so a tricky interaction is described once and a repeated flow such as
+login is shared across tests without copying prose. See the new
+[Create Test Skills](../getting-started/create-test-skills.mdx) guide.
+
+- **Test skills** — a skill is a folder holding a single `SKILL.md` (front-matter `name`
+  and `description`, then a Markdown body). The agent sees only the name and description
+  while it decides whether a skill applies, and loads the full body only when it does, so
+  a long skill costs nothing until it is used.
+- **Built-in skills** — three ship inside the image under the reserved `ww:` prefix, each
+  covering an interaction the raw browser tooling handles poorly on its own:
+  `ww:clipboard-capture`, `ww:form-and-dialog`, and `ww:take-browser-screenshot`. The
+  `ww:` prefix is reserved, so your own skill names can never collide with a shipped one.
+- **`SKILLS_DIR`** — user skills are read from `/agent/skills` by default; point
+  [`SKILLS_DIR`](../reference/env-vars-reference.md) at another folder to swap skill
+  implementations per environment without editing a single test. Built-in skills are
+  unaffected by it.
+- **New commands:**
+  - [`load-test-skills`](../reference/usage.mdx#load-test-skills-command) — create or, with
+    `--force`, replace a skill from piped content.
+  - [`display-test-skills`](../reference/usage.mdx#display-test-skills-command) — list every
+    built-in and user skill, or print one skill's `SKILL.md` with `--show`.
+  - [`delete-test-skills`](../reference/usage.mdx#delete-test-skills-command) — remove user
+    skills by name (`-n`) or clear all of them (`-a`); built-in skills are never touched.
+  - [`delete-builtin-skills`](../reference/usage.mdx#delete-builtin-skills-command) — remove a
+    shipped skill by exact name. There is deliberately no `-a`, and the only way back is
+    recreating the container.
+- **Agent loops support** — the `waterwheel-load-test-skills`
+  [Waterwheel skill](../guides/agent-loops.mdx) loads a project's test skills into the
+  container as part of the pipeline. It requires this release; toolkit `v2.0.0` and newer
+  pin agent image `1.4.0`.
+
+```shell
+docker pull taojdcn/duotail-waterwheel:1.4.0
+```
+
+## 1.3.0
+
+Makes every part of the agent scriptable and introduces the
 [Waterwheel skills](../guides/agent-loops.mdx) for pairing the agent with a code agent in a
 nested test-and-fix loop.
 
