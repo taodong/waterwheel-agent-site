@@ -4,14 +4,60 @@ description: Recommended configuration settings for each supported AI provider.
 sidebar_position: 5
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Provider Configuration Guide
 
 The following configurations are recommended based on our internal use cases. The goal is to minimize API costs while maintaining stable performance across a regression test suite of more than 10 test cases.
 
+:::tip[Do not over-buy the model]
+QA is not rocket science. For most situations an older, cheaper model is both capable enough and far more cost-effective than the newest flagship — start there, and only move up if it actually fails your suite. When you hit an edge case the model keeps getting wrong, a custom [test skill](../getting-started/create-test-skills.mdx) fixes it most of the time, at a fraction of the cost of upgrading the model for every run.
+:::
+
+## Two configuration modes
+
+Each provider below is offered in two modes. Pick one, copy the block, and add your `AI_API_KEY`.
+
+| Mode | Use it when |
+|------|-------------|
+| **Efficiency mode** (recommended) | You run a real test suite. Tuned to cut token cost and keep the context small over 10+ test cases. |
+| **Default mode** | You are trying the agent out or debugging a single test. Every value is the built-in default from the [Environment Variables reference](./env-vars-reference.md). |
+
+Efficiency mode changes only these variables:
+
+| Variable | Default mode | Efficiency mode |
+|----------|--------------|-----------------|
+| `MAX_SNAPSHOTS_HISTORY` | `2` | `0` |
+| `CONTEXT_COMPRESSION` | `false` | `true` |
+| `COMPRESSION_THRESHOLD_MIN` | not used | `12500` (Claude: `2500`) |
+| `COMPRESSION_THRESHOLD_LEAP` | not used | `5000` (Claude: `500`) |
+| `RATE_LIMIT_RETRY` | `1` | `2` |
+| `MAX_ITERATIONS` | `300` | `100` |
+
+The two compression thresholds take effect only when `CONTEXT_COMPRESSION=true`, so they are left out of the default-mode blocks.
+
+### Applying a mode with one command
+
+You do not have to set these variables by hand. The [`config-ai-provider`](./usage.mdx#config-ai-provider-command) command takes the provider, the model, and the mode, and applies the matching settings to a running container:
+
+```shell
+config-ai-provider --provider <provider> --model <model> --mode <default|efficiency>
+```
+
+Each provider below lists the exact command next to its variable block. Use the variable blocks instead when you are writing a `docker run` command, a Compose file, or a `.env` file — that is, when the container does not exist yet.
+
+:::note
+[Gemma 4](#gemma-4) has a single configuration rather than two modes — see that section for why.
+:::
+
 ## Claude
+
 Claude works well with our default prompts. The model we tested is `claude-sonnet-4-6`, so we recommend it as the minimum model.
 
-### Recommended Configuration
+<Tabs groupId="provider-mode">
+<TabItem value="efficiency" label="Efficiency mode (recommended)" default>
+
 ```shell
 AI_PROVIDER=anthropic
 AI_MODEL=claude-sonnet-4-6
@@ -26,11 +72,47 @@ MAX_ITERATIONS=100
 MAXIMUM_RESTRICTED_TOOL_USAGE=3
 ```
 
+Or, on a running container:
+
+```shell
+docker exec -it waterwheel-agent \
+  config-ai-provider --provider anthropic --model claude-sonnet-4-6 --mode efficiency
+```
+
+Claude compresses far more aggressively than the other providers (`COMPRESSION_THRESHOLD_MIN=2500`, `COMPRESSION_THRESHOLD_LEAP=500`), which is what keeps its per-run cost down.
+
+</TabItem>
+<TabItem value="default" label="Default mode">
+
+```shell
+AI_PROVIDER=anthropic
+AI_MODEL=claude-sonnet-4-6
+AI_MAX_TOKENS=8192
+MAX_SNAPSHOTS_HISTORY=2
+CONTEXT_COMPRESSION=false
+LARGE_CONTENT_THRESHOLD=10000
+RATE_LIMIT_RETRY=1
+MAX_ITERATIONS=300
+MAXIMUM_RESTRICTED_TOOL_USAGE=3
+```
+
+Or, on a running container:
+
+```shell
+docker exec -it waterwheel-agent \
+  config-ai-provider --provider anthropic --model claude-sonnet-4-6 --mode default
+```
+
+</TabItem>
+</Tabs>
+
 ## DeepSeek
 
 DeepSeek is the most cost-effective option for this agent. We tested both `deepseek-v4-flash` and `deepseek-v4-pro`. `deepseek-v4-flash` is not capable enough to pass our tests, so `deepseek-v4-pro` is the minimum model we recommend.
 
-### Recommended Configuration
+<Tabs groupId="provider-mode">
+<TabItem value="efficiency" label="Efficiency mode (recommended)" default>
+
 ```shell
 AI_PROVIDER=deepseek
 AI_MODEL=deepseek-v4-pro
@@ -45,10 +127,45 @@ MAX_ITERATIONS=100
 MAXIMUM_RESTRICTED_TOOL_USAGE=3
 ```
 
+Or, on a running container:
+
+```shell
+docker exec -it waterwheel-agent \
+  config-ai-provider --provider deepseek --model deepseek-v4-pro --mode efficiency
+```
+
+</TabItem>
+<TabItem value="default" label="Default mode">
+
+```shell
+AI_PROVIDER=deepseek
+AI_MODEL=deepseek-v4-pro
+AI_MAX_TOKENS=8192
+MAX_SNAPSHOTS_HISTORY=2
+CONTEXT_COMPRESSION=false
+LARGE_CONTENT_THRESHOLD=10000
+RATE_LIMIT_RETRY=1
+MAX_ITERATIONS=300
+MAXIMUM_RESTRICTED_TOOL_USAGE=3
+```
+
+Or, on a running container:
+
+```shell
+docker exec -it waterwheel-agent \
+  config-ai-provider --provider deepseek --model deepseek-v4-pro --mode default
+```
+
+</TabItem>
+</Tabs>
+
 ## OpenAI
+
 We briefly tested both `gpt-5.4` and `gpt-5.5`. We did not spend enough time tuning prompts to make them work reliably, but we expect `gpt-5.4` to work with the right prompts.
 
-### Recommended Configuration
+<Tabs groupId="provider-mode">
+<TabItem value="efficiency" label="Efficiency mode (recommended)" default>
+
 ```shell
 AI_PROVIDER=openai
 AI_MODEL=gpt-5.4
@@ -63,11 +180,37 @@ MAX_ITERATIONS=100
 MAXIMUM_RESTRICTED_TOOL_USAGE=3
 ```
 
-### Observation (May 2026)
-1. GPT models have difficulty distinguishing a `link` from its `label` when a click is needed. Possible remedies are:
-   - Add an extra instruction to regulate this behavior.
-   - Update any `click` instructions in the default system prompt to eliminate potentially misleading prompts introduced by the tool.
-   - Increase the `MAX_SNAPSHOTS_HISTORY` value and allow retries.
+Or, on a running container:
+
+```shell
+docker exec -it waterwheel-agent \
+  config-ai-provider --provider openai --model gpt-5.4 --mode efficiency
+```
+
+</TabItem>
+<TabItem value="default" label="Default mode">
+
+```shell
+AI_PROVIDER=openai
+AI_MODEL=gpt-5.4
+AI_MAX_TOKENS=8192
+MAX_SNAPSHOTS_HISTORY=2
+CONTEXT_COMPRESSION=false
+LARGE_CONTENT_THRESHOLD=10000
+RATE_LIMIT_RETRY=1
+MAX_ITERATIONS=300
+MAXIMUM_RESTRICTED_TOOL_USAGE=3
+```
+
+Or, on a running container:
+
+```shell
+docker exec -it waterwheel-agent \
+  config-ai-provider --provider openai --model gpt-5.4 --mode default
+```
+
+</TabItem>
+</Tabs>
 
 ## Gemini
 
@@ -78,7 +221,9 @@ Because Gemini does not have a universal API specification across models, the cu
 | `gemini-2.5-flash` | Disabled (`thinkingBudget: 0`) | Enforced by our agent |
 | `gemini-2.5-pro` | Always on | The provider default value is always used; no override is sent |
 
-### Recommended Configuration
+<Tabs groupId="provider-mode">
+<TabItem value="efficiency" label="Efficiency mode (recommended)" default>
+
 ```shell
 AI_PROVIDER=gemini
 AI_MODEL=gemini-2.5-flash
@@ -93,7 +238,40 @@ MAX_ITERATIONS=100
 MAXIMUM_RESTRICTED_TOOL_USAGE=3
 ```
 
+Or, on a running container:
+
+```shell
+docker exec -it waterwheel-agent \
+  config-ai-provider --provider gemini --model gemini-2.5-flash --mode efficiency
+```
+
+</TabItem>
+<TabItem value="default" label="Default mode">
+
+```shell
+AI_PROVIDER=gemini
+AI_MODEL=gemini-2.5-flash
+AI_MAX_TOKENS=8192
+MAX_SNAPSHOTS_HISTORY=2
+CONTEXT_COMPRESSION=false
+LARGE_CONTENT_THRESHOLD=10000
+RATE_LIMIT_RETRY=1
+MAX_ITERATIONS=300
+MAXIMUM_RESTRICTED_TOOL_USAGE=3
+```
+
+Or, on a running container:
+
+```shell
+docker exec -it waterwheel-agent \
+  config-ai-provider --provider gemini --model gemini-2.5-flash --mode default
+```
+
+</TabItem>
+</Tabs>
+
 ### Observation (May 2026)
+
 1. Possibly due to our low spend tier, our tests often fail with a 503 error (`This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.`). Our agent does not have a recovery mechanism for this situation. Please be cautious if you plan to run a large test suite.
 
 ## Gemma 4
@@ -105,12 +283,14 @@ To simplify API adaptation, our `Gemma 4` support is limited to `Ollama`-hosted 
 | `AI_MODEL` | The AI model listed in `ollama` | The model name can be found with `ollama list`. |
 | `AI_BASE_URL` | The `ollama` web service base URL | If `ollama` runs on the host machine, use `http://host.docker.internal:<port>`. |
 
-### Recommended Configuration
-Although token cost is zero for a self-hosted `Gemma 4` model, we recommend the following efficiency-focused configuration to mitigate its short context window.
+### Configuration
+
+Gemma 4 has a single configuration instead of two modes. Token cost is zero for a self-hosted model, but its short context window makes the efficiency settings necessary rather than optional, so there is no default-mode variant to fall back to.
 
 ```shell
 AI_PROVIDER=gemma
 AI_MODEL=gemma4:26b
+AI_BASE_URL=http://host.docker.internal:11434
 AI_MAX_TOKENS=8192
 MAX_SNAPSHOTS_HISTORY=1
 CONTEXT_COMPRESSION=true
@@ -122,5 +302,12 @@ MAX_ITERATIONS=100
 MAXIMUM_RESTRICTED_TOOL_USAGE=5
 ```
 
+On a running container, use the interactive [`config-agent`](./usage.mdx#config-agent-command) command rather than [`config-ai-provider`](./usage.mdx#config-ai-provider-command) — Gemma 4 needs a custom `AI_BASE_URL`, which `config-ai-provider` cannot set.
+
+Two values differ from every other provider's efficiency mode: `MAX_SNAPSHOTS_HISTORY=1` (one snapshot of history is kept rather than none) and `RATE_LIMIT_RETRY=-1` (unlimited retries, since a local Ollama server has no billing cap).
+
 ### Observation (June 2026)
-1. The biggest challenge with `Gemma 4` is its high hallucination rate. For real-world testing, task instructions must be very specific, for example: fill the `Username` input field (id: `username`) with `abcd`. We recommend using it for simple (or chained simple) test tasks.
+
+1. The biggest challenge with `Gemma 4` is its high hallucination rate. For real-world testing, task instructions must be very specific, for example: fill the `Username` input field (id: `username`) with `abcd`.
+
+   **Recommendation:** rather than writing that level of detail into every task file, rely on custom [test skills](../getting-started/create-test-skills.mdx) to carry the precise instructions. Capture each flow once — with the exact element ids, labels, and step order Gemma 4 needs — and let your task files stay short and readable.

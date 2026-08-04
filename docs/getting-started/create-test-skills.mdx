@@ -401,6 +401,40 @@ built-ins; each must be named exactly.
 | Deleting by name reports nothing to delete | The CLI matches the **folder** name, which may differ from the front-matter `name`. `display-test-skills` shows folder names. |
 | A skill body's instructions are being ignored mid-run | The body is long and unemphatic. Put the load-bearing constraints early and mark them. |
 
+## Token Efficiency on Anthropic Models
+
+Everything above says a skill body costs nothing until it is used. That holds — but on Anthropic
+models, *used* costs more than it first appears, and the difference is worth understanding before
+you build a long suite around large skills.
+
+Anthropic caches only a **prefix** of each request, up to an explicit cache breakpoint. Waterwheel
+places that breakpoint over the material that is fixed for the whole run — the system prompt, the
+instruction files, the tool definitions — and it is settled before the first step runs. A skill
+loaded partway through a test arrives *after* that boundary, so its body never enters the cache. It
+is billed as ordinary input tokens on every API call from the load onwards, until the test finishes
+or [context compression](../guides/token-efficiency.md#enable-context-compression) discards it.
+
+The cost is therefore not the skill body once — it is the skill body multiplied by the number of
+steps that follow the load, and it grows linearly with the length of the scenario. A 2,000-token
+skill pulled in at step 3 of a 40-step test is paid for roughly 37 times.
+
+This only matters for long scenarios and substantial skill bodies; a short skill in a ten-step test
+is noise. When it does matter, there are three levers:
+
+| Lever | Use it when |
+| --- | --- |
+| **Run in efficiency mode** | Always. `CONTEXT_COMPRESSION=true` caps how many calls carry the skill text forward — Claude's recommended thresholds are deliberately aggressive for this reason. See the [Provider Configuration Guide](../reference/provider-guide.mdx#claude). |
+| **Move the instructions to `extra-instructions.md`** | Several tests need the same prose. That file is appended to the system prompt, which sits *inside* the cached prefix, so its tokens are cached for the whole run instead of re-billed per call. See [Configuration Files](../reference/configuration-files.mdx). |
+| **Write the instructions into the task file** | Exactly one test needs them. The prose is in place before the run starts rather than injected mid-test, and you also save the extra round trip the agent spends asking for the skill. |
+
+:::note[This is an Anthropic-specific trade-off]
+The pattern above follows from how Anthropic's prefix caching works. It is not a reason to avoid
+skills — the [two jobs](#what-skills-are-for) they do are still worth it, and a skill that fixes an
+interaction the agent otherwise gets wrong saves far more than it costs in retried steps. It is a
+reason to keep frequently-loaded, cross-suite prose in `extra-instructions.md` and reserve skills for
+procedures that genuinely belong to a subset of tests.
+:::
+
 ## Next Steps
 
 - [Manage Test Tasks](../reference/test-task-manual.md) — front matter, flow, statuses, and the authoring patterns
