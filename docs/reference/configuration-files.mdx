@@ -11,6 +11,13 @@ container) control how the agent behaves. They are reloaded every time `run-qa`
 is called, so you can edit them on the host and simply start the next run — no
 container restart needed. The most commonly tuned files are described below.
 
+:::note[Test skills are not instruction files]
+User [test skills](../getting-started/create-test-skills.mdx) live outside this folder — each in its
+own subfolder under `agent/skills` (`/agent/skills` in the container, repointable with
+[`SKILLS_DIR`](./env-vars-reference.md)) holding a single `SKILL.md`. Unlike the files here, a skill
+body is loaded only when the agent decides it applies.
+:::
+
 ## `global-context.json`
 
 Static values shared across **every** test in the run — base URLs, tenant IDs,

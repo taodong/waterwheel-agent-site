@@ -21,11 +21,30 @@ const SAMPLE_TEST = `# Test Wikipedia English Language Banner
 2. Click the English language link.
 3. Confirm the "Welcome to Wikipedia" banner is shown.`;
 
+const SAMPLE_SKILL = `---
+name: login-test-site
+description: Log a given user into the test site. Use
+  whenever a task requires an authenticated session.
+---
+
+# Login to Test Site
+
+1. Verify the given user exists in the context manager.
+   If not, fail with "Test user credential isn't found."
+2. Open a browser tab, navigate to \`LOGIN_URL\`, and submit
+   \`\${context.<user>.username}\` and its password.
+3. Verify the browser URL becomes \`TEST_URL\`.`;
+
+const SKILL_CALLER = `1. Load the \`login-test-site\` skill and log into the
+   test site with user \`testuser\`.
+2. Verify the account menu shows "testuser".`;
+
 const HERO_BADGES = [
   'Plain-English Markdown tests',
+  'Reusable test skills',
   'Pennies per test case',
-  'Any major AI provider',
-  'Runs anywhere via Docker',
+  'Your LLM key, or a local model',
+  'Runs in your own Docker',
   'Nested agent loops',
   'Fully automated web development',
 ];
@@ -40,6 +59,10 @@ function HomepageHeader() {
         </Heading>
         <p className={clsx('hero__subtitle', styles.heroSubtitle)}>
           {siteConfig.tagline}
+        </p>
+        <p className={styles.heroPrivacy}>
+          Runs in your own Docker with your own LLM key. There is no Waterwheel
+          backend: your tests, results, and app never touch our infrastructure.
         </p>
         <div className={styles.buttons}>
           <Link
@@ -125,7 +148,87 @@ function HowItWorks() {
                   </p>
                 </div>
               </li>
+              <li className={styles.step}>
+                <span className={styles.stepNumber}>4</span>
+                <div>
+                  <Heading as="h3" className={styles.stepTitle}>
+                    Grow the suite
+                  </Heading>
+                  <p>
+                    <Link to="/docs/getting-started/chain-tests-together">
+                      Chain dependent tests
+                    </Link>{' '}
+                    so a value discovered in one flows into the next, and pull
+                    the steps they share into a{' '}
+                    <Link to="/docs/getting-started/create-test-skills">
+                      test skill
+                    </Link>
+                    .
+                  </p>
+                </div>
+              </li>
             </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SkillsSpotlight() {
+  return (
+    <section className={styles.skills}>
+      <div className="container">
+        <div className={styles.skillsPanel}>
+          <div className={clsx('row', styles.skillsRow)}>
+            <div className="col col--5">
+              <span className={styles.skillsBadge}>New in 1.4.0</span>
+              <Heading as="h2" className={styles.sectionTitle}>
+                Teach it once, reuse it everywhere
+              </Heading>
+              <p className={styles.skillsLede}>
+                A <strong>test skill</strong> is a Markdown file holding a named
+                piece of instruction — a login flow, or the exact procedure for
+                an interaction the agent otherwise gets wrong. Tests refer to it
+                by name instead of repeating the prose.
+              </p>
+              <ul className={styles.skillsList}>
+                <li>
+                  <strong>Loaded on demand.</strong> The agent sees only a
+                  skill&apos;s name and description until a test needs it, so a
+                  thorough skill costs nothing until it is used.
+                </li>
+                <li>
+                  <strong>Batteries included.</strong> Three built-in skills
+                  ship in the image — clipboard capture, forms and dialogs, and
+                  screenshots — under a reserved <code>ww:</code> prefix that
+                  can never collide with your own names.
+                </li>
+                <li>
+                  <strong>Swappable per environment.</strong> Point{' '}
+                  <code>SKILLS_DIR</code> at another folder and the same tests
+                  resolve to a different implementation.
+                </li>
+              </ul>
+              <div className={styles.skillsButtons}>
+                <Link
+                  className="button button--primary button--lg"
+                  to="/docs/getting-started/create-test-skills">
+                  Create Test Skills
+                </Link>
+              </div>
+            </div>
+            <div className="col col--7">
+              <CodeBlock language="markdown" title="skills/login-test-site/SKILL.md">
+                {SAMPLE_SKILL}
+              </CodeBlock>
+              <p className={styles.skillsCaption}>
+                Any test that needs an authenticated session is now two lines:
+              </p>
+              <CodeBlock language="markdown" title="tasks/view-profile.md">
+                {SKILL_CALLER}
+              </CodeBlock>
+            </div>
           </div>
         </div>
       </div>
@@ -202,6 +305,7 @@ export default function Home(): ReactNode {
       <HomepageHeader />
       <main>
         <HowItWorks />
+        <SkillsSpotlight />
         <HomepageFeatures />
         <CallToAction />
       </main>

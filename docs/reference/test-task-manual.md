@@ -454,3 +454,4 @@ Before updating `preset-context.json`:
 1. Divide each test into numbered steps.
 2. Verify no more than one element per step.
 3. Validate any global or runtime context variables at the start of the test to fail fast if they are missing.
+4. Move a flow that several tests repeat — logging in, seeding a record — into a [test skill](../getting-started/create-test-skills.mdx) and ask for it by name instead of restating the steps in every task file.

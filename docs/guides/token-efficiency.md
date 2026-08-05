@@ -14,6 +14,12 @@ The agent makes heavy use of token caching, which means token efficiency improve
 
 1. Group multiple verifications into a single test case where logical.
 2. Include as many test tasks as possible in one run rather than splitting them across multiple runs.
+3. Move steps that several tests repeat into a [test skill](../getting-started/create-test-skills.mdx). The
+   agent sees only a skill's name and description until it decides the skill applies, so tests that never
+   need it never pay for its body. On Anthropic models a skill loaded mid-test lands outside the cached
+   prefix — read
+   [Token Efficiency on Anthropic Models](../getting-started/create-test-skills.mdx#token-efficiency-on-anthropic-models)
+   before building a long suite around large skills.
 
 ## Configuration Tuning
 

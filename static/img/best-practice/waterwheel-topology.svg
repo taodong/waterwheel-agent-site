@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 680 452" role="img">
+<title>Waterwheel agent use-case topology</title>
+<desc>Topology diagram. A version-controlled file repo holds test files (grouped by website), test skills (grouped by website or LLM provider) and test data (global constants and preset variables). These are loaded into isolated Waterwheel agent containers, each running one test suite (a website plus user type, using a chosen LLM provider). Multiple independent agents run in parallel inside each environment, such as dev and stage.</desc>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<g id="ic-folder" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7 a1.5 1.5 0 0 1 1.5-1.5 H9 l2 2 H18.5 A1.5 1.5 0 0 1 20 9 V17 a1.5 1.5 0 0 1 -1.5 1.5 H5.5 A1.5 1.5 0 0 1 4 17 Z"/></g>
+<g id="ic-doc" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3 h7 l4 4 v14 h-11 z"/><path d="M14 3 v4 h4"/><path d="M9 12 h6 M9 16 h5"/></g>
+<g id="ic-spark" stroke="none"><path d="M12 3 L13.6 10.4 L21 12 L13.6 13.6 L12 21 L10.4 13.6 L3 12 L10.4 10.4 Z" fill="currentColor"/></g>
+<g id="ic-data" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="2.5"/><path d="M5 6 V18 a7 2.5 0 0 0 14 0 V6"/><path d="M5 12 a7 2.5 0 0 0 14 0"/></g>
+<g id="ic-cube" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 L20 7.5 V16.5 L12 21 L4 16.5 V7.5 Z"/><path d="M4 7.5 L12 12 L20 7.5"/><path d="M12 12 V21"/></g>
+<g id="ic-env" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="7" rx="1.5"/><rect x="4" y="13" width="16" height="7" rx="1.5"/><circle cx="8" cy="7.5" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="16.5" r="1" fill="currentColor" stroke="none"/></g>
+<style>
+text{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+.t14{font-size:14px}.t12{font-size:12px}.b{font-weight:500}
+.tFill{fill:#E1F5EE;stroke:#0F6E56}.tTxt{fill:#085041}.tSub{fill:#0F6E56}
+.gFill{fill:#F1EFE8;stroke:#5F5E5A}.gTxt{fill:#444441}
+.arr{stroke:#5F5E5A;stroke-width:1.5;fill:none}.lbl{fill:#5F5E5A}
+.bound{fill:none;stroke:#888780;stroke-width:1;stroke-dasharray:6 5}
+.cT{color:#085041}.cG{color:#444441}
+@media (prefers-color-scheme:dark){
+.tFill{fill:#085041;stroke:#5DCAA5}.tTxt{fill:#9FE1CB}.tSub{fill:#5DCAA5}
+.gFill{fill:#2C2C2A;stroke:#B4B2A9}.gTxt{fill:#D3D1C7}
+.arr{stroke:#B4B2A9}.lbl{fill:#B4B2A9}.bound{stroke:#B4B2A9}
+.cT{color:#9FE1CB}.cG{color:#D3D1C7}
+}
+</style>
+</defs>
+
+<use href="#ic-folder" class="cG" transform="translate(24,36)"/>
+<text class="t14 b gTxt" x="52" y="52">File repo · version-controlled source</text>
+<rect class="bound" x="16" y="62" width="648" height="132" rx="10"/>
+
+<rect class="gFill" x="32" y="78" width="196" height="102" rx="8"/>
+<use href="#ic-doc" class="cG" transform="translate(44,90)"/>
+<text class="t14 b gTxt" x="76" y="107">Test files</text>
+<text class="t12 gTxt" x="44" y="132">tasks in text, grouped</text>
+<text class="t12 gTxt" x="44" y="150">by target website</text>
+<text class="t12 lbl" x="44" y="170">site-a/ · site-b/</text>
+
+<rect class="gFill" x="240" y="78" width="196" height="102" rx="8"/>
+<use href="#ic-spark" class="cG" transform="translate(252,90)"/>
+<text class="t14 b gTxt" x="284" y="107">Test skills</text>
+<text class="t12 gTxt" x="252" y="132">SKILL.md folders, by</text>
+<text class="t12 gTxt" x="252" y="150">website or LLM provider</text>
+<text class="t12 lbl" x="252" y="170">site-a/ · anthropic/ · openai/</text>
+
+<rect class="gFill" x="448" y="78" width="196" height="102" rx="8"/>
+<use href="#ic-data" class="cG" transform="translate(460,90)"/>
+<text class="t14 b gTxt" x="492" y="107">Test data</text>
+<text class="t12 gTxt" x="460" y="132">global constants +</text>
+<text class="t12 gTxt" x="460" y="150">preset variables</text>
+<text class="t12 lbl" x="460" y="170">same shape, different data</text>
+
+<line class="arr" x1="340" y1="194" x2="340" y2="230" marker-end="url(#arrow)"/>
+<text class="t12 lbl" x="340" y="216" text-anchor="middle">each agent loads the files, skills &amp; data for its suite</text>
+
+<rect class="bound" x="16" y="236" width="320" height="164" rx="10"/>
+<use href="#ic-env" class="cG" transform="translate(28,242)"/>
+<text class="t14 b gTxt" x="56" y="258">Environment · dev</text>
+<text class="t12 lbl" x="28" y="278">independent agents, run in parallel</text>
+
+<rect class="tFill" x="32" y="292" width="140" height="94" rx="8"/>
+<use href="#ic-cube" class="cT" transform="translate(90,300)"/>
+<text class="t14 b tTxt" x="102" y="344" text-anchor="middle">site-a</text>
+<text class="t12 tSub" x="102" y="361" text-anchor="middle">free user</text>
+<text class="t12 tSub" x="102" y="377" text-anchor="middle">LLM: anthropic</text>
+
+<rect class="tFill" x="184" y="292" width="140" height="94" rx="8"/>
+<use href="#ic-cube" class="cT" transform="translate(242,300)"/>
+<text class="t14 b tTxt" x="254" y="344" text-anchor="middle">site-a</text>
+<text class="t12 tSub" x="254" y="361" text-anchor="middle">admin user</text>
+<text class="t12 tSub" x="254" y="377" text-anchor="middle">LLM: anthropic</text>
+
+<rect class="bound" x="344" y="236" width="320" height="164" rx="10"/>
+<use href="#ic-env" class="cG" transform="translate(356,242)"/>
+<text class="t14 b gTxt" x="384" y="258">Environment · stage</text>
+<text class="t12 lbl" x="356" y="278">independent agents, run in parallel</text>
+
+<rect class="tFill" x="360" y="292" width="140" height="94" rx="8"/>
+<use href="#ic-cube" class="cT" transform="translate(418,300)"/>
+<text class="t14 b tTxt" x="430" y="344" text-anchor="middle">site-a</text>
+<text class="t12 tSub" x="430" y="361" text-anchor="middle">admin user</text>
+<text class="t12 tSub" x="430" y="377" text-anchor="middle">LLM: anthropic</text>
+
+<rect class="tFill" x="512" y="292" width="140" height="94" rx="8"/>
+<use href="#ic-cube" class="cT" transform="translate(570,300)"/>
+<text class="t14 b tTxt" x="582" y="344" text-anchor="middle">site-b</text>
+<text class="t12 tSub" x="582" y="361" text-anchor="middle">all users</text>
+<text class="t12 tSub" x="582" y="377" text-anchor="middle">LLM: openai</text>
+
+<use href="#ic-cube" class="cT" transform="translate(20,414)"/>
+<text class="t12 lbl" x="46" y="430">Each cube = one isolated Waterwheel agent (container) running a single test suite</text>
+</svg>

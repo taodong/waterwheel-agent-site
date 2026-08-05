@@ -7,6 +7,7 @@ type FeatureItem = {
   title: string;
   Svg: React.ComponentType<React.ComponentProps<'svg'>>;
   description: ReactNode;
+  badge?: string;
 };
 
 export const FeatureList: FeatureItem[] = [
@@ -17,6 +18,32 @@ export const FeatureList: FeatureItem[] = [
       <>
         All test tasks are plain Markdown files — no scripting required. Write
         automation in plain language. <a href="/docs/reference/test-task-manual">Manage Test Tasks</a>
+      </>
+    ),
+  },
+  {
+    title: 'Reusable Test Skills',
+    Svg: require('@site/static/img/feature_test_skills.svg').default,
+    badge: 'New in 1.4.0',
+    description: (
+      <>
+        Describe a login flow or a tricky interaction once in a{' '}
+        <code>SKILL.md</code>, and every test that needs it loads the
+        instructions on demand.{' '}
+        <a href="/docs/getting-started/create-test-skills">Create Test Skills</a>
+      </>
+    ),
+  },
+  {
+    title: 'Tests That Chain',
+    Svg: require('@site/static/img/feature_chained_tests.svg').default,
+    description: (
+      <>
+        Declare dependencies between tests and pass values from one to the next
+        through global, preset, and runtime context.{' '}
+        <a href="/docs/getting-started/chain-tests-together">
+          Chain Tests Together
+        </a>
       </>
     ),
   },
@@ -37,19 +64,20 @@ export const FeatureList: FeatureItem[] = [
     Svg: require('@site/static/img/feature_harnessed.svg').default,
     description: (
       <>
-        The agent is isolated through multiple layers of permission controls,
-        from the container down to individual tools.{' '}
+        It runs in your infrastructure — there is no Waterwheel backend — and is
+        isolated by layers of permission controls, from the container down to
+        individual tools.{' '}
         <a href="/docs/how-it-works/permissions">Agent Permissions</a>
       </>
     ),
   },
   {
-    title: 'AI Agnostic',
+    title: 'Your Key, Your Provider',
     Svg: require('@site/static/img/feature_provider_agnostic.svg').default,
     description: (
       <>
-        Supports all major AI providers: Claude, OpenAI, Google Gemini, 
-        DeepSeek, and Gemma 4.{' '}
+        Claude, OpenAI, Google Gemini, DeepSeek, or Ollama-hosted Gemma 4. You
+        bring the key, and the agent talks only to the provider you pick.{' '}
         <a href="/docs/reference/provider-guide">Provider Guide</a>
       </>
     ),
@@ -78,10 +106,10 @@ export const FeatureList: FeatureItem[] = [
   },
 ];
 
-function Feature({title, Svg, description}: FeatureItem) {
+function Feature({title, Svg, description, badge}: FeatureItem) {
   return (
     <div className={clsx('col col--4', styles.featureCol)}>
-      <div className={styles.featureCard}>
+      <div className={clsx(styles.featureCard, badge && styles.featureCardNew)}>
         <div className="text--center">
           <Svg className={styles.featureSvg} role="img" />
         </div>
@@ -89,6 +117,7 @@ function Feature({title, Svg, description}: FeatureItem) {
           <Heading as="h3" className={styles.featureTitle}>
             {title}
           </Heading>
+          {badge && <span className={styles.featureBadge}>{badge}</span>}
           <p className={styles.featureText}>{description}</p>
         </div>
       </div>
