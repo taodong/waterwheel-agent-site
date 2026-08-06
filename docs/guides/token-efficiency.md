@@ -6,9 +6,9 @@ sidebar_position: 3
 
 # Token Efficiency
 
-Our default settings favour prompt flexibility over token efficiency, allowing the agent to tolerate more ambiguity in test prompts. For teams willing to invest time in refining their test prompts, we recommend the following practices.
+Our default settings favor prompt flexibility over token efficiency, allowing the agent to tolerate more ambiguity in test prompts. For teams willing to invest time in refining their test prompts, we recommend the following practices.
 
-## Test Organisation
+## Test Organization
 
 The agent makes heavy use of token caching, which means token efficiency improves as test suite size grows — the more tests in a single run, the greater the caching benefit. When structuring your test cases, consider the following:
 
@@ -25,7 +25,7 @@ The agent makes heavy use of token caching, which means token efficiency improve
 
 ### Enable Context Compression
 
-The LLM has no memory between calls, so every API request includes the full conversation history up to that point. A typical feature test may involve 30–50 API calls, and the message volume grows rapidly towards the end. For a well-structured test, however, the LLM does not need to keep re-processing earlier steps once their verifications are complete. Context compression allows the agent to discard history that is no longer needed after each successful verification.
+The LLM has no memory between calls, so every API request includes the full conversation history up to that point. A typical feature test may involve 30–50 API calls, and the message volume grows rapidly toward the end. For a well-structured test, however, the LLM does not need to keep re-processing earlier steps once their verifications are complete. Context compression allows the agent to discard history that is no longer needed after each successful verification.
 
 Context compression is controlled by three environment variables:
 

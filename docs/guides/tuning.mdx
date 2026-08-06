@@ -6,19 +6,19 @@ sidebar_position: 4
 
 # Tuning and Beyond QA
 
-The Waterwheel agent is tuned out of the box for web testing. However, individual situations may require further tuning. More broadly, the agent is a general-purpose web browser agent capable of tasks beyond QA. Whatever your goal, we expose the necessary tools to tailor its behaviour and efficiency.
+The Waterwheel agent is tuned out of the box for web testing. However, individual situations may require further tuning. More broadly, the agent is a general-purpose web browser agent capable of tasks beyond QA. Whatever your goal, we expose the necessary tools to tailor its behavior and efficiency.
 
 ## Prompt Tuning
 
 ### Prompt Types
 
-The agent uses three types of prompts to fulfil its objectives: the system prompt, the task prompt, and the compressed task prompt.
+The agent uses three types of prompts to fulfill its objectives: the system prompt, the task prompt, and the compressed task prompt.
 
 #### System Prompt
 
 The system prompt contains up to three pieces of information:
 
-- **Default system prompt** _(required)_: content in `/agent/config/system.prompt.md`. Defines the agent's role and core behaviour.
+- **Default system prompt** _(required)_: content in `/agent/config/system.prompt.md`. Defines the agent's role and core behavior.
 - **Global variables** _(optional)_: read from `/agent/instructions/global-context.json` by default. A JSON file containing values shared across all tasks in a run.
 - **Extra instructions** _(optional)_: read from `/agent/instructions/extra-instructions.md` by default. Provides any additional instructions needed for a specific run.
 

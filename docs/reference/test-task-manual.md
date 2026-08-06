@@ -1,6 +1,6 @@
 ---
 title: Manage Test Tasks
-description: How to author, structure, and organise test task files for the Waterwheel agent.
+description: How to author, structure, and organize test task files for the Waterwheel agent.
 sidebar_position: 1
 ---
 
@@ -70,7 +70,7 @@ Reserved keys: `name`, `id`, `node`, `required`, `ignore`
 `node`, `required`, and `ignore` are reserved but no longer read from front-matter — they are silently ignored if present. Define them in `preset-context.json` under the `flow` key instead.
 :::
 
-Custom field behaviour:
+Custom field behavior:
 - Values are copied into `customFields` and converted to text.
 - Output shape: `Record<string, string>`
 
@@ -169,7 +169,7 @@ The diagram below shows these rules in action across a single run: `node` and `r
 
 | Status | Meaning | Typical Trigger | Dependency Impact |
 |---|---|---|---|
-| `queued` | Initial state before the execution decision. | Loader initialises test entries. | Not treated as satisfied. |
+| `queued` | Initial state before the execution decision. | Loader initializes test entries. | Not treated as satisfied. |
 | `ignored` | User intentionally excluded this test from the run. | `ignore: true` in the flow configuration. | Excluded from dependency evaluation. |
 | `success` | Test executed and passed. | Task run completes successfully. | Satisfies required node checks. |
 | `failed` | Test executed but failed. | Task run completes with failure. | Does not satisfy required node checks; dependent tests become `abort` unless an `abort` or `skipped` rule applies first. |
@@ -183,7 +183,7 @@ These statuses are distinct:
 - **`ignored`**: the test was intentionally excluded from this run via `ignore: true` in the flow configuration.
 - **`skipped`**: the test was intended to run but could not, due to an upstream dependency failure.
 
-Behavioural differences:
+Behavioral differences:
 - Ignored tests are sorted to the top of the run list before all other tests.
 - Ignored tests are never executed.
 - Ignored tests do not satisfy dependencies, even if they declare a `node`.
@@ -451,7 +451,7 @@ Before updating `preset-context.json`:
 
 ## Recommended Best Practices
 
-1. Divide each test into numbered steps.
-2. Verify no more than one element per step.
-3. Validate any global or runtime context variables at the start of the test to fail fast if they are missing.
-4. Move a flow that several tests repeat — logging in, seeding a record — into a [test skill](../getting-started/create-test-skills.mdx) and ask for it by name instead of restating the steps in every task file.
+For how to structure the body of a task file — numbered steps, one verification per step,
+validating context variables up front, and moving repeated flows into a skill — see
+[Write Tests the Agent Can Follow](../guides/best-practices.mdx#write-tests-the-agent-can-follow)
+in the Best Practices guide.

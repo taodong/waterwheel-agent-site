@@ -54,7 +54,7 @@ const config: Config = {
     [
       '@docusaurus/plugin-client-redirects',
       {
-        // The docs were reorganised into categories; keep every pre-category
+        // The docs were reorganized into categories; keep every pre-category
         // URL resolving. Redirect pages are only emitted by `npm run build`,
         // not by `npm start`.
         redirects: [

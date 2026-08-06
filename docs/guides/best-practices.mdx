@@ -1,0 +1,222 @@
+---
+id: best-practices
+title: Best Practices
+sidebar_label: Best Practices
+sidebar_position: 5
+description: Recommended patterns for organizing containers and suites, getting more out of a smaller model, and using an AI application to write and maintain your tests.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Best Practices
+
+The practices below come from running the agent against real applications. None of them are
+enforced by the tooling — you can ignore any of them and still get passing tests — but following
+them keeps runs cheaper, failures easier to read, and test files easier to maintain.
+
+## Organize Containers and Suites
+
+### One Container, One Site
+
+Give each site under test its own container. A container holds one set of domain permissions, one
+global context, and one output folder, so mixing two applications into a single container means
+their URLs, constants, and results all compete for the same slots.
+
+Containers are cheap to run side by side. The only hard requirement is that each one has a
+**distinct name**, since the name is how every `docker exec` command finds its container:
+
+<Tabs groupId="os">
+<TabItem value="unix" label="macOS / Linux" default>
+
+```bash
+docker run -d --name waterwheel-storefront \
+  -e AI_API_KEY \
+  taojdcn/duotail-waterwheel:1.4.0
+
+docker run -d --name waterwheel-admin \
+  -e AI_API_KEY \
+  taojdcn/duotail-waterwheel:1.4.0
+```
+
+</TabItem>
+<TabItem value="powershell" label="Windows (PowerShell)">
+
+```powershell
+docker run -d --name waterwheel-storefront `
+  -e AI_API_KEY `
+  taojdcn/duotail-waterwheel:1.4.0
+
+docker run -d --name waterwheel-admin `
+  -e AI_API_KEY `
+  taojdcn/duotail-waterwheel:1.4.0
+```
+
+</TabItem>
+</Tabs>
+
+Both containers then run their suites in parallel on the same machine, each configured for its own
+application:
+
+```bash
+docker exec -it waterwheel-storefront run-qa
+docker exec -it waterwheel-admin run-qa
+```
+
+:::tip[Alias the container name]
+Since the container name appears in every command, defining a shell alias per container —
+`alias wws='docker exec -it waterwheel-storefront'` — removes most of the typing and makes it
+obvious which application a command is aimed at.
+:::
+
+Parallel runs multiply API usage as well as CPU and memory, so watch your provider's rate limits
+before scaling out. If you are using Docker Compose, give each service its own `container_name` and
+its own sync folder; see [Install with Docker Compose](./docker-compose.mdx).
+
+### One Suite, One User Profile
+
+Within a single run, the agent works in one browser session. Whatever a test logs in as, later
+tests inherit — which is a benefit when the whole suite belongs to the same user, and a source of
+confusing failures when it does not.
+
+So split suites by **user profile** rather than by feature. A free-tier suite and a paid-tier suite
+should be two separate runs, each logging in once at the top and reusing that session for every
+test that follows. The alternative — logging out and back in mid-suite — spends tokens on
+authentication steps that verify nothing, and leaves any test that runs after a failed login in an
+unpredictable state.
+
+This pairs naturally with [chaining tests together](../getting-started/chain-tests-together.mdx):
+the first test in a suite establishes the session, and the rest declare their dependency on it.
+
+## Write Tests the Agent Can Follow
+
+A task file is prose, but it is prose the agent has to execute one piece at a time. A few habits in
+how you structure it make the difference between a run that self-corrects and one that drifts.
+
+### Divide Each Test into Numbered Steps
+
+Numbered steps give the agent an explicit sequence to work through and give you an exact place to
+point when something goes wrong. A test written as a single paragraph leaves the ordering up to the
+model, and its step log becomes far harder to read against the intent.
+
+### Verify One Element per Step
+
+Keep each step to a single verification. When a step checks three things at once, a failure tells
+you only that the step failed — and a partial success can still be reported as a pass. One
+verification per step also gives context compression a clean boundary to discard history at; see
+[Token Efficiency](./token-efficiency.md).
+
+### Validate Context Variables Up Front
+
+If a test depends on a global or runtime value, check it at the top of the test so a missing value
+fails immediately. Without that check, the agent proceeds with a blank or stale value and fails
+several steps later, somewhere that looks like a product bug. See
+[Pass Data Between Tests](../reference/test-task-manual.md#pass-data-between-tests) for how the
+layers resolve.
+
+### Move Repeated Flows into a Skill
+
+When several tests open with the same steps — logging in, seeding a record — describe the flow once
+as a skill and ask for it by name rather than restating it in every task file. See
+[Abstract Repetition into a Skill](#abstract-repetition-into-a-skill) below for what that buys you.
+
+## Get More Out of the Model
+
+### Reach for a Skill Before a Bigger Model
+
+When the agent gets an interaction wrong, the tempting fix is to move to a more capable — and more
+expensive — model. Try a [test skill](../getting-started/create-test-skills.mdx) first.
+
+Most failures of this kind are not reasoning failures. They are cases where the agent improvises a
+procedure because nothing told it the right one: an ambiguous control, a widget whose accessible
+structure reads differently from how it looks, a result that must be confirmed in a specific place.
+
+A common variant is a site that implements a familiar feature in an unconventional way. The model
+has seen thousands of ordinary date pickers, checkout flows, and multi-select filters, so it applies
+what usually works — and your custom implementation is not what usually works. No amount of
+reasoning power supplies knowledge the model does not have about your application; it only produces
+a more confident wrong guess. What closes that gap is telling the agent how *your* control behaves.
+
+Writing down the exact procedure once removes the guesswork, and it does so for every model you
+ever point at the suite. A bigger model, by contrast, raises the cost of every test in the run to
+fix one step.
+
+Escalate the model when a skill cannot close the gap — that is a genuine signal, and by then you
+have a written procedure that the stronger model also benefits from.
+
+### Abstract Repetition into a Skill
+
+The second job a skill does is remove duplication. When several tests open with the same handful of
+steps — log in, switch tenant, seed a cart — describe the flow once as a skill and have each test
+refer to it by name.
+
+The payoff is more than tidiness:
+
+- **One place to change.** When the login flow gains a step, you edit one file instead of every
+  task that logs in.
+- **Shorter task files.** Tests describe what they verify, not how to get to the starting line.
+- **Fewer tokens.** The agent sees only a skill's name and description until it decides the skill
+  applies, so tests that never need it never pay for its body. See
+  [Token Efficiency](./token-efficiency.md) for the caching details.
+
+A good rule of thumb: the third time you copy a block of prose between task files, turn it into a
+skill.
+
+## Let an AI Application Write and Maintain Tests
+
+Waterwheel tests are prose, and the agent's outputs are structured. That combination makes an AI
+application such as Claude or ChatGPT genuinely useful at both ends of the cycle — writing the
+tests and diagnosing them.
+
+### Generating Test Files
+
+Rather than writing task files by hand, give an AI application the material it needs and let it
+draft them:
+
+1. The scenario you want covered, in whatever form you have it — a ticket, an acceptance criterion,
+   a paragraph of description.
+2. A few of your **existing task files**, so the generated test matches your house style, naming,
+   and level of detail.
+3. Your **test skills**, so the draft calls existing skills instead of re-describing flows that are
+   already written down.
+4. The [Manage Test Tasks](../reference/test-task-manual.md) reference, which defines the file
+   format and the context-passing rules.
+
+Points 2 and 3 matter most. Without them you get a plausible test written in a stranger's voice
+that duplicates work your suite already does; with them you get something close to what you would
+have written yourself. Review the draft before uploading it — you are still the author, and the
+model does not know which parts of the flow are load-bearing.
+
+### Diagnosing and Fixing Failures
+
+A failing test means one of two things: the application is broken, or the test's prose does not
+describe the application accurately. Telling the two apart is exactly what the agent's output is
+designed to support.
+
+Feed the failure report to an AI application:
+
+```bash
+docker exec -it waterwheel-agent get-failure-detail
+```
+
+The report bundles the failed test's summary from `test-results.json`, the task file itself, the
+per-test step log, the run's context values, and the agent log — enough for a model to reconstruct
+what the agent saw, what it did, and where its expectation diverged from the page. Add `-d` to
+include the API log when the failure needs deeper analysis.
+
+From there the two verdicts lead to different work:
+
+| Verdict | Evidence in the report | What to do |
+| --- | --- | --- |
+| **Application issue** | The agent performed the right steps and the application responded incorrectly | Fix the application; leave the test alone |
+| **Test issue** | The agent could not find an element, misread a control, or checked an expectation the feature never promised | Refine the task file or add a skill that pins down the step |
+
+For test issues, the AI application can propose the corrected task file directly — it has the
+original prose and the step log side by side. Re-upload the revision and run again.
+
+:::tip[Automate the whole loop]
+The diagnose-and-fix cycle above is what the
+[Waterwheel skills](./agent-loops.mdx) automate when you install them into a code agent such as
+Claude Code: the code agent runs the suite, reads the failure detail, decides between an
+application fix and a test fix, applies it, and runs again.
+:::
