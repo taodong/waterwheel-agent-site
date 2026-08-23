@@ -30,8 +30,8 @@ Efficiency mode changes only these variables:
 |----------|--------------|-----------------|
 | `MAX_SNAPSHOTS_HISTORY` | `2` | `0` |
 | `CONTEXT_COMPRESSION` | `false` | `true` |
-| `COMPRESSION_THRESHOLD_MIN` | not used | `12500` (Claude: `2500`) |
-| `COMPRESSION_THRESHOLD_LEAP` | not used | `5000` (Claude: `500`) |
+| `COMPRESSION_THRESHOLD_MIN` | not used | `18500` (Claude: `3750`) |
+| `COMPRESSION_THRESHOLD_LEAP` | not used | `5500` (Claude: `600`) |
 | `RATE_LIMIT_RETRY` | `1` | `2` |
 | `MAX_ITERATIONS` | `300` | `100` |
 
@@ -64,8 +64,8 @@ AI_MODEL=claude-sonnet-4-6
 AI_MAX_TOKENS=8192
 MAX_SNAPSHOTS_HISTORY=0
 CONTEXT_COMPRESSION=true
-COMPRESSION_THRESHOLD_MIN=2500
-COMPRESSION_THRESHOLD_LEAP=500
+COMPRESSION_THRESHOLD_MIN=3750
+COMPRESSION_THRESHOLD_LEAP=600
 LARGE_CONTENT_THRESHOLD=10000
 RATE_LIMIT_RETRY=2
 MAX_ITERATIONS=100
@@ -79,7 +79,7 @@ docker exec -it waterwheel-agent \
   config-ai-provider --provider anthropic --model claude-sonnet-4-6 --mode efficiency
 ```
 
-Claude compresses far more aggressively than the other providers (`COMPRESSION_THRESHOLD_MIN=2500`, `COMPRESSION_THRESHOLD_LEAP=500`), which is what keeps its per-run cost down.
+Claude compresses far more aggressively than the other providers (`COMPRESSION_THRESHOLD_MIN=3750`, `COMPRESSION_THRESHOLD_LEAP=600`), which is what keeps its per-run cost down.
 
 </TabItem>
 <TabItem value="default" label="Default mode">
@@ -108,19 +108,19 @@ docker exec -it waterwheel-agent \
 
 ## DeepSeek
 
-DeepSeek is the most cost-effective option for this agent. We tested both `deepseek-v4-flash` and `deepseek-v4-pro`. `deepseek-v4-flash` is not capable enough to pass our tests, so `deepseek-v4-pro` is the minimum model we recommend.
+DeepSeek is the most cost-effective option for this agent. We tested both `deepseek-v4-flash` and `deepseek-v4-pro`. `deepseek-v4-flash` is capable enough to pass our tests with test skills introduced by `v1.4.0`, so `deepseek-v4-flash` is the new minimum model we recommend.
 
 <Tabs groupId="provider-mode">
 <TabItem value="efficiency" label="Efficiency mode (recommended)" default>
 
 ```shell
 AI_PROVIDER=deepseek
-AI_MODEL=deepseek-v4-pro
+AI_MODEL=deepseek-v4-flash
 AI_MAX_TOKENS=8192
 MAX_SNAPSHOTS_HISTORY=0
 CONTEXT_COMPRESSION=true
-COMPRESSION_THRESHOLD_MIN=12500
-COMPRESSION_THRESHOLD_LEAP=5000
+COMPRESSION_THRESHOLD_MIN=18500
+COMPRESSION_THRESHOLD_LEAP=5500
 LARGE_CONTENT_THRESHOLD=10000
 RATE_LIMIT_RETRY=2
 MAX_ITERATIONS=100
@@ -131,7 +131,7 @@ Or, on a running container:
 
 ```shell
 docker exec -it waterwheel-agent \
-  config-ai-provider --provider deepseek --model deepseek-v4-pro --mode efficiency
+  config-ai-provider --provider deepseek --model deepseek-v4-flash --mode efficiency
 ```
 
 </TabItem>
@@ -153,7 +153,7 @@ Or, on a running container:
 
 ```shell
 docker exec -it waterwheel-agent \
-  config-ai-provider --provider deepseek --model deepseek-v4-pro --mode default
+  config-ai-provider --provider deepseek --model deepseek-v4-flash --mode default
 ```
 
 </TabItem>
@@ -172,8 +172,8 @@ AI_MODEL=gpt-5.4
 AI_MAX_TOKENS=8192
 MAX_SNAPSHOTS_HISTORY=0
 CONTEXT_COMPRESSION=true
-COMPRESSION_THRESHOLD_MIN=12500
-COMPRESSION_THRESHOLD_LEAP=5000
+COMPRESSION_THRESHOLD_MIN=18500
+COMPRESSION_THRESHOLD_LEAP=5500
 LARGE_CONTENT_THRESHOLD=10000
 RATE_LIMIT_RETRY=2
 MAX_ITERATIONS=100
@@ -230,8 +230,8 @@ AI_MODEL=gemini-2.5-flash
 AI_MAX_TOKENS=8192
 MAX_SNAPSHOTS_HISTORY=0
 CONTEXT_COMPRESSION=true
-COMPRESSION_THRESHOLD_MIN=12500
-COMPRESSION_THRESHOLD_LEAP=5000
+COMPRESSION_THRESHOLD_MIN=18500
+COMPRESSION_THRESHOLD_LEAP=5500
 LARGE_CONTENT_THRESHOLD=10000
 RATE_LIMIT_RETRY=2
 MAX_ITERATIONS=100
@@ -294,8 +294,8 @@ AI_BASE_URL=http://host.docker.internal:11434
 AI_MAX_TOKENS=8192
 MAX_SNAPSHOTS_HISTORY=1
 CONTEXT_COMPRESSION=true
-COMPRESSION_THRESHOLD_MIN=12500
-COMPRESSION_THRESHOLD_LEAP=5000
+COMPRESSION_THRESHOLD_MIN=18500
+COMPRESSION_THRESHOLD_LEAP=5500
 LARGE_CONTENT_THRESHOLD=10000
 RATE_LIMIT_RETRY=-1
 MAX_ITERATIONS=100

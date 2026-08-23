@@ -39,6 +39,7 @@ Variable | Description | Default
 | `SKILLS_DIR` | Directory of user `<skill-name>/SKILL.md` skill folders (same layout as Anthropic's Agent Skills); the model loads a skill's full instructions on demand via the `load_skill` tool. Ignored if the directory does not exist or is empty. Point it at a different folder to swap skills without editing task files. | `/agent/skills` |
 | `TEST_RUN_TIMEOUT` | Maximum total duration (in seconds) for the entire test run before it is stopped with status `timeout` | `7200` (2 hours) |
 | `STEP_TIMEOUT_SEC` | Maximum duration (in seconds) the agent may idle without receiving an LLM response per step before the task is marked failed | `120` (2 minutes) |
+| `TOOL_CALL_TIMEOUT_SEC` | Maximum duration (in seconds) a single MCP tool call may run before it is aborted and reported as a tool error | `180` (3 minutes) |
 | `MAX_SNAPSHOTS_HISTORY` | Maximum number of recent `browser_snapshot` tool results to keep in LLM message history; negative values are treated as `2`; `0` blocks direct `browser_snapshot` calls at runtime (use `take_verification_snapshot` instead) | `2` |
 | `CONTEXT_COMPRESSION` | Enables message compression flow; evaluates to `true` only when set to `true` (case-insensitive) | `false` |
 | `COMPRESSION_DEBUG` | Emits one compression debug log right before the next LLM call after a compression; evaluates to `true` only when set to `true` (case-insensitive) | `false` |
