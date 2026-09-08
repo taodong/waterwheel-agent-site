@@ -37,6 +37,7 @@ Variable | Description | Default
 | `EXTRA_INSTRUCTION` | Path to a Markdown file whose content is appended to the system prompt; ignored if the file does not exist | `/agent/instructions/extra-instructions.md` |
 | `PRESET_CONTEXT` | Path to a JSON file of preset context values seeded into the context store before any task runs; ignored if the file does not exist | `/agent/instructions/preset-context.json` |
 | `SKILLS_DIR` | Directory of user `<skill-name>/SKILL.md` skill folders (same layout as Anthropic's Agent Skills); the model loads a skill's full instructions on demand via the `load_skill` tool. Ignored if the directory does not exist or is empty. Point it at a different folder to swap skills without editing task files. | `/agent/skills` |
+| `RERUN_CONFIG_PATH` | Path to the JSON file listing the tasks [`rerun-tests`](./usage.mdx#rerun-tests-command) replays; read only by a rerun, which fails if the file does not exist. Relative paths resolve against `/agent`. See [`rerun-config.json`](./configuration-files.mdx#rerun-configjson) | `/agent/instructions/rerun-config.json` |
 | `TEST_RUN_TIMEOUT` | Maximum total duration (in seconds) for the entire test run before it is stopped with status `timeout` | `7200` (2 hours) |
 | `STEP_TIMEOUT_SEC` | Maximum duration (in seconds) the agent may idle without receiving an LLM response per step before the task is marked failed | `120` (2 minutes) |
 | `TOOL_CALL_TIMEOUT_SEC` | Maximum duration (in seconds) a single MCP tool call may run before it is aborted and reported as a tool error | `180` (3 minutes) |

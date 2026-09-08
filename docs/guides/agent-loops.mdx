@@ -123,7 +123,7 @@ omit a key to keep its default.
 | Key | Default | Purpose |
 |---|---|---|
 | `containerName` | `waterwheel-agent` | Name of the Waterwheel Docker container. Container operations use force-removal, so this must reference only the Waterwheel container. |
-| `imageName` | `taojdcn/duotail-waterwheel:1.4.0` | The Waterwheel agent Docker image to pull. Minimum supported version is `1.4.0`, which adds the `load-test-skills` command `waterwheel-load-test-skills` depends on. |
+| `imageName` | `taojdcn/duotail-waterwheel:1.5.0` | The Waterwheel agent Docker image to pull. The default tracks the [latest release](../about/release-notes.mdx). The minimum supported version is `1.4.0`, which adds the `load-test-skills` command `waterwheel-load-test-skills` depends on. |
 | `allowRebuild` | `false` | When `false`, an existing container is only started; when `true`, it is rebuilt if needed. |
 | `aiProvider` | `anthropic` | AI provider for your API key. One of `anthropic`, `openai`, `gemini`, `deepseek`, `gemma`. |
 | `aiModel` | `claude-sonnet-4-6` | Model the agent uses (must be valid for the chosen provider). |
@@ -147,7 +147,7 @@ omit a key to keep its default.
 ```json
 {
   "containerName": "waterwheel-agent",
-  "imageName": "taojdcn/duotail-waterwheel:1.4.0",
+  "imageName": "taojdcn/duotail-waterwheel:1.5.0",
   "allowRebuild": false,
   "aiProvider": "anthropic",
   "aiModel": "claude-sonnet-4-6",

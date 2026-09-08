@@ -1,6 +1,6 @@
 ---
 title: Configuration Files
-description: The files under /agent/instructions that control the agent's global context, preset context, domain allowlist, and extra instructions.
+description: The files under /agent/instructions that control the agent's global context, preset context, domain allowlist, extra instructions, and rerun selection.
 sidebar_position: 2
 ---
 
@@ -117,3 +117,46 @@ Make sure the corresponding `host.docker.internal` origin is also present in
 The [`config-agent`](./usage.mdx#config-agent-command) command can generate and
 maintain `extra-instruction.md` for you when you enable **Test web app on host**.
 :::
+
+## `rerun-config.json`
+
+The task list for a [rerun](./usage.mdx#rerun-tests-command). Unlike the files above, it is
+read **only** by `rerun-tests` — `run-qa` ignores it — and `rerun-tests` fails before
+starting any service if it is missing.
+
+```json title="rerun-config.json"
+{
+    "name": "login flow",
+    "flow": [
+        { "file": "login.md" },
+        { "file": "checkout.md" }
+    ],
+    "data": {
+        "admin_password": "s3cret"
+    }
+}
+```
+
+| Property | Required | Description |
+| --- | --- | --- |
+| `flow` | yes | The task files to replay, in execution order |
+| `name` | no | Names the output folder — results land in `/agent/outputs/rerun-<name>/`. Without it the folder is auto-numbered `rerun-N` |
+| `data` | no | Context values that override the ones restored from the checkpoint |
+
+A rerun runs the listed files in the order given and seeds each one from the context
+checkpoint captured for it during the most recent full run, so the `node` and `required`
+dependency fields of `preset-context.json` above have no counterpart
+here — dependency checking is bypassed for a rerun.
+
+You can edit this file directly, or push it into the container with
+[`upload-instruction-file`](./usage.mdx#upload-instruction-file-command):
+
+```shell
+printf '{"name":"login flow","flow":[{"file":"login.md"}]}' | \
+  docker exec -i waterwheel-agent upload-instruction-file rerun-config.json
+```
+
+Its location is configurable with
+[`RERUN_CONFIG_PATH`](./env-vars-reference.md). See
+[`rerun-tests`](./usage.mdx#rerun-tests-command) for the prerequisites and for how to read
+a rerun's results.

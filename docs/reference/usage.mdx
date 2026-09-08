@@ -34,10 +34,12 @@ The container provides the following commands to help you run web tests.
 | [`manage-test-files`](#manage-test-files-command)        | Manage markdown test task files |
 | [`output-context-variables`](#output-context-variables-command)  | Output user-scoped context values from the latest run |
 | [`preset-context`](#preset-context-command)           | Manage preset context variables and test flow |
+| [`rerun-tests`](#rerun-tests-command)                | Replay a subset of tasks from the last run's checkpoints |
 | [`reset-test-config`](#reset-test-config-command)          | Delete test tasks and/or instruction files to reset state |
 | [`run-qa`](#run-qa-command)                   | Run QA tasks                 |
 | [`set-domain-permission`](#set-domain-permission-command)      | Set the browser domain allowlist from a domain list |
 | [`stop-qa`](#stop-qa-command)                  | Stop current QA run                   |
+| [`stop-rerun`](#stop-rerun-command)              | Stop the current rerun, leaving a `run-qa` run alone |
 | [`upload-instruction-file`](#upload-instruction-file-command)    | Upload an instruction or config file into the agent |
 | [`upload-test-task`](#upload-test-task-command)           | Upload a markdown test task into the agent |
 
@@ -109,20 +111,42 @@ in every example. The command and its arguments are otherwise identical.
 `check-test-result` prints the overall outcome of the latest run, or reports the current run status if a test is still in progress. It is a helper command for code agent integration.
 
 ```shell
-check-test-result
+check-test-result [-r|--rerun [name]]
 ```
+
+### Options
+| Option | Description |
+| --- | --- |
+| `-r`, `--rerun [name]` | **(1.5.0+)** Read a [rerun](#rerun-tests-command)'s results instead of the full run's. With no name, reads the most recent rerun |
+| `-h`, `--help`, `h`, `help` | Show usage help |
+
+An unrecognized option is rejected with exit `1` rather than ignored, so a mistyped
+selector can never quietly print the full run's results in place of a rerun's.
 
 ### Output
 | Condition | Output |
 | --- | --- |
-| `run-qa` is currently active | A message indicating testing is in progress, including the orchestrator PID |
+| `run-qa` or `rerun-tests` is currently active | A message indicating testing is in progress, naming the mode and the orchestrator PID |
 | Test results exist | The exit condition summarizing the run outcome |
 | `test-results.json` missing, `agent.log` missing | `ℹ️  No test results found.` |
 | `test-results.json` missing, `agent.log` exists | `ℹ️  No test results found.` followed by the full content of `agent.log` |
 
-### Example
+With `--rerun`, every path above resolves inside the selected
+`/agent/outputs/rerun-<name>/` folder, and the "no test results" case additionally prints
+the top-level `/agent/outputs/agent.log`. The folder being read is named on **stderr**, so
+stdout carries exactly what it does without the selector. See
+[Reading rerun results](#reading-rerun-results).
+
+### Examples
 ```shell
+# Check results after a run
 docker exec -it waterwheel-agent check-test-result
+
+# Check the most recent rerun's results
+docker exec -it waterwheel-agent check-test-result --rerun
+
+# Check a named rerun's results
+docker exec -it waterwheel-agent check-test-result --rerun "login flow"
 ```
 
 ## `config-agent` Command
@@ -379,13 +403,17 @@ docker exec -it waterwheel-agent enable-test-on-host
 When a test failure is reported by a previous run, this command prints a full diagnostic report for the first failed test found in `$AGENT_PATH/outputs/test-results.json`. If a test run is still in progress, it reports that instead. It is another helper command for code agent integration.
 
 ```shell
-get-failure-detail [-d]
+get-failure-detail [-d] [-r|--rerun [name]]
 ```
 
 ### Options
 | Option | Description |
 | --- | --- |
 | `-d` | Include API log (`/agent/outputs/api-log.json`) at the end of the report if file exists|
+| `-r`, `--rerun [name]` | **(1.5.0+)** Read a [rerun](#rerun-tests-command)'s results instead of the full run's. With no name, reads the most recent rerun |
+| `-h`, `--help`, `h`, `help` | Show usage help |
+
+An unrecognized option is rejected with exit `1` rather than ignored.
 
 ### Output when a failed test is found
 
@@ -398,13 +426,19 @@ Each section is printed in order. Missing files are reported inline and do not a
 | **Test Steps** | `/agent/outputs/<test-file-stem>_log.json` |
 | **Test Context** | `/agent/outputs/test-context.json` |
 | **Agent Log** | `/agent/outputs/agent.log` |
+| **Pre-rerun Startup Log** _(only with `--rerun`, only if file exists)_ | `/agent/outputs/agent.log` |
 | **API Log** _(only with `-d`, only if file exists)_ | `/agent/outputs/api-log.json` |
+
+With `--rerun`, every `/agent/outputs` path above resolves inside the selected
+`/agent/outputs/rerun-<name>/` folder instead — except **Test Detail**, which reads
+`/agent/tasks/<test-file>`: task files live outside `outputs/` and are the same ones a
+rerun replays. See [Reading rerun results](#reading-rerun-results).
 
 ### Output when no failure
 
 | Condition | Output |
 | --- | --- |
-| `run-qa` is currently active | A message indicating testing is in progress, including the orchestrator PID |
+| `run-qa` or `rerun-tests` is currently active | A message indicating testing is in progress, naming the mode and the orchestrator PID |
 | `test-results.json` missing, `agent.log` missing | `ℹ️  No test results found.` |
 | `test-results.json` missing, `agent.log` exists | `ℹ️  No test results found.` followed by the full content of `agent.log` |
 | Run did not complete | `⚠️  Run did not complete:` followed by the exit condition |
@@ -417,6 +451,9 @@ docker exec -it waterwheel-agent get-failure-detail
 
 # Include the API log in the report
 docker exec -it waterwheel-agent get-failure-detail -d
+
+# Print the report for a named rerun's first failure
+docker exec -it waterwheel-agent get-failure-detail --rerun "login flow"
 ```
 
 ## `load-test-skills` Command
@@ -566,24 +603,33 @@ cat ./test-a.md | docker exec -i waterwheel-agent upload-test-task test-a.md
 `output-context-variables` prints context values produced by the latest run as a flat JSON object. Tests store values such as AI-generated usernames and passwords in `/agent/outputs/test-context.json`; this command extracts those entries so you can reuse them outside the container (for example, to log in with a freshly registered account).
 
 ```shell
-output-context-variables 
+output-context-variables [-r|--rerun [name]]
 ```
 
 ### Options
 | Option | Description |
 | --- | --- |
+| `-r`, `--rerun [name]` | **(1.5.0+)** Read a [rerun](#rerun-tests-command)'s context instead of the full run's. With no name, reads the most recent rerun |
 | `-h`, `--help`, `h`, `help` | Show usage help |
+
+An unrecognized option is rejected with exit `1` rather than ignored. With `--rerun`, the
+folder being read is named on **stderr** only, so stdout stays pure JSON — see
+[Reading rerun results](#reading-rerun-results).
 
 ### Errors
 
 | Condition | Result |
 | --- | --- |
-| `run-qa` is currently active | Prints an error that exporting context variables while testing is in progress isn't supported, and exits non-zero |
+| `run-qa` or `rerun-tests` is currently active | Prints an error that exporting context variables while testing is in progress isn't supported, and exits non-zero |
 | `test-context.json` is missing | Prints an error that no `test-context.json` was found, and exits non-zero |
 
-### Example
+### Examples
 ```shell
+# Context values from the latest full run
 docker exec -it waterwheel-agent output-context-variables
+
+# Context values from the most recent rerun
+docker exec -it waterwheel-agent output-context-variables --rerun
 ```
 
 It prints:
@@ -684,6 +730,140 @@ docker exec -it waterwheel-agent preset-context flow /agent/instructions/preset-
 - Unknown key names in `delete` print a warning but do not cause an error; any found keys are still deleted.
 :::
 
+## `rerun-tests` Command
+<Since version="1.5.0" />
+
+`rerun-tests` replays a chosen subset of tasks instead of the whole suite. It starts the
+same services as [`run-qa`](#run-qa-command), then seeds each replayed task with the
+context checkpoint captured for it during the most recent full run. That is what makes a
+partial run possible: a task that depends on an account registered earlier in the suite
+can be replayed on its own, without re-running the tests that produced the account.
+
+```shell
+rerun-tests
+```
+
+It takes no options.
+
+### Prerequisites
+
+1. **A completed `run-qa` run.** Every full run writes a per-task context checkpoint to
+   `/agent/outputs/checkpoints/<taskId>.json`. Those checkpoints are what a rerun seeds
+   from, so a rerun is only meaningful after a full run has produced them.
+2. **A rerun config file** at
+   [`rerun-config.json`](./configuration-files.mdx#rerun-configjson) naming the task files
+   to replay, in execution order. `rerun-tests` exits `1` before starting any service if
+   the file is missing.
+
+Upload the config with [`upload-instruction-file`](#upload-instruction-file-command):
+
+```shell
+printf '{"name":"login flow","flow":[{"file":"test-2.md"},{"file":"test-5.md"}]}' | \
+  docker exec -i waterwheel-agent upload-instruction-file rerun-config.json
+```
+
+| Property | Required | Description |
+| --- | --- | --- |
+| `flow` | yes | The task files to replay, in execution order |
+| `name` | no | Names the output folder — results land in `/agent/outputs/rerun-<name>/`. Without it the folder is auto-numbered `rerun-N` |
+| `data` | no | Context values that override the ones restored from the checkpoint |
+
+The config location comes from the
+[`RERUN_CONFIG_PATH`](./env-vars-reference.md) agent parameter: the process environment
+first, then the default in `/agent/config/agent-config.json`, and finally
+`./instructions/rerun-config.json`. Relative paths resolve against `/agent`.
+
+### Output handling
+
+Unlike `run-qa`, **`rerun-tests` never clears `/agent/outputs`** — that is where it reads
+the checkpoints and the previous run's results from. Each invocation writes to its own
+`/agent/outputs/rerun-<name>/` subfolder and leaves the original run's results untouched.
+
+:::note[The next full run clears the reruns too]
+`run-qa` wipes `/agent/outputs` as its first step, removing both the checkpoints and every
+`rerun-*` folder. Checkpoints only ever belong to the most recent full run.
+:::
+
+### Reading rerun results
+
+A rerun folder holds the same files as a full run's `/agent/outputs` —
+`test-results.json`, `test-context.json`, `agent.log`, `api-log.json`, and the per-test
+`<test-name>_log.json` — written by the same agent code in the same format. Only
+`checkpoints/` is absent. So the three reader commands read a rerun through a `-r` /
+`--rerun` selector rather than through separate commands:
+
+| Invocation | Reads |
+| --- | --- |
+| `check-test-result` | `/agent/outputs/` — the full run, unchanged |
+| `check-test-result --rerun` | the most recently modified `/agent/outputs/rerun-*/` |
+| `check-test-result --rerun "login flow"` | `/agent/outputs/rerun-login_flow/` |
+
+The same selector works on [`get-failure-detail`](#get-failure-detail-command) and
+[`output-context-variables`](#output-context-variables-command).
+
+**Names are normalized the way the agent normalizes them** when it creates the folder:
+lower-cased, whitespace runs collapsed to a single `_`, and every other character
+stripped. So `"login flow"`, `"Login Flow"`, and `login_flow` all select
+`rerun-login_flow`. Underscores you type are preserved — `login__flow` selects
+`rerun-login__flow`, a different folder.
+
+You can also paste a folder name straight from a directory listing: if `rerun-<name>` does
+not exist and `<name>` itself begins with `rerun-`, that prefix is dropped and the lookup
+retried. This is strictly a fallback — the literal name always wins, so a rerun genuinely
+named `rerun-login_flow` (folder `rerun-rerun-login_flow`) is never shadowed by an
+unrelated rerun named `login flow`.
+
+**The most recent rerun is chosen by modification time, not by number.** An auto-numbered
+suffix is the *lowest free* integer rather than a sequence — deleting `rerun-2` makes the
+next unnamed rerun reuse it — and named folders carry no number at all.
+
+If the requested folder does not exist (or no `rerun-*` folder exists at all), the command
+exits non-zero and says so. It deliberately does **not** fall back to `/agent/outputs`:
+reporting the full run's result as though it were the rerun's is the failure this selector
+exists to remove.
+
+:::caution[Two caveats worth knowing]
+1. **A rerun that fails before running any task writes no `test-results.json` at all.** A
+   full run records an `incomplete` result in that case; a rerun does not. So `--rerun`
+   with no name can resolve to an *older* rerun folder and report its result as current.
+   If you have just run `rerun-tests` and the output looks stale, check the timestamps
+   under `/agent/outputs`. To remove the ambiguity, give each rerun a `name` in
+   `rerun-config.json` and select it explicitly.
+2. **A rerun's `agent.log` is split across two folders.** The rerun redirects its logger
+   only after loading config and skills, so those startup lines land in the *top-level*
+   `/agent/outputs/agent.log`. `check-test-result --rerun` (when no results file is found)
+   and `get-failure-detail --rerun` therefore also print that file, labeled as pre-rerun
+   startup output — it is where an early rerun failure is actually recorded.
+:::
+
+### Relationship to `run-qa`
+
+`rerun-tests` and `run-qa` share one single-instance lock and one session record, because
+both drive the same virtual display and the same MCP services. They can never run at the
+same time: whichever starts second exits and names the stop command for the session that
+is already active — [`stop-qa`](#stop-qa-command) or
+[`stop-rerun`](#stop-rerun-command).
+
+### Examples
+```shell
+# 1. A full run first, to produce the checkpoints
+docker exec -it waterwheel-agent run-qa
+
+# 2. Name the tasks to replay
+printf '{"name":"login flow","flow":[{"file":"test-2.md"}]}' | \
+  docker exec -i waterwheel-agent upload-instruction-file rerun-config.json
+
+# 3. Replay them — results land in /agent/outputs/rerun-login_flow/
+docker exec -it waterwheel-agent rerun-tests
+
+# 4. Read the rerun's results
+docker exec -it waterwheel-agent check-test-result --rerun "login flow"
+
+# If a previous rerun session is still active, stop it first
+docker exec -it waterwheel-agent stop-rerun
+docker exec -it waterwheel-agent rerun-tests
+```
+
 ## `reset-test-config` Command
 <Since version="1.3.0" />
 
@@ -729,6 +909,11 @@ docker exec -it waterwheel-agent reset-test-config -i
 ```shell
 run-qa
 ```
+
+Only one `run-qa` process can run at a time, and it shares that single-instance lock with
+[`rerun-tests`](#rerun-tests-command). If either is already active, the command exits and
+names the stop command for that session — [`stop-qa`](#stop-qa-command) or
+[`stop-rerun`](#stop-rerun-command).
 
 ```shell title="From the host"
 docker exec -it waterwheel-agent run-qa
@@ -817,6 +1002,7 @@ After each run, the agent writes the following files to `/agent/outputs`.
 | `test-context.json` | All context values stored at the end of the run, such as AI-generated usernames and passwords |
 | `<test-name>_log.json` | Per-test step log recording all AI-decided steps and tool calls |
 | `<test-name>_audit.json` | Per-test audit log recording the tool calls the AI actually performed |
+| `checkpoints/<task-id>.json` | Per-task context checkpoint, used to seed a [rerun](#rerun-tests-command) |
 | `playwright.log` | Playwright MCP stdout log |
 | `playwright.err` | Playwright MCP stderr log |
 | `firewall.log` | Playwright firewall log. Only written when `FIREWALL_DEBUG` is `true` |
@@ -865,15 +1051,54 @@ See the [URL Permissions](../how-it-works/mcp-guide.mdx#url-permissions) section
 ## `stop-qa` Command
 <Since version="1.1.0" />
 
-`stop-qa` stops the currently tracked `run-qa` process tree, including the launched agent subprocess, if one exists. Because there can only be one `run-qa` process running in a container, `stop-qa` lets you stop the existing `run-qa` process in that container.
+`stop-qa` stops the currently tracked orchestrator process tree, including the launched agent subprocess, if one exists. Because only one orchestrator can run in a container, `stop-qa` is the universal stopper: it ends a `run-qa` session *or* a [`rerun-tests`](#rerun-tests-command) session, whichever is active. It is also the only command that clears a stale lock left behind by an orphaned process.
+
+Each recorded process ID is validated against its start time first, so a stale record is
+discarded rather than acted on.
 
 ```shell
 stop-qa
 ```
 
+To stop only a rerun — and be told to leave a `run-qa` session alone — use
+[`stop-rerun`](#stop-rerun-command).
+
 ### Example
 ```shell
 docker exec -it waterwheel-agent stop-qa
+```
+
+## `stop-rerun` Command
+<Since version="1.5.0" />
+
+`stop-rerun` stops an active [`rerun-tests`](#rerun-tests-command) session. It is scoped to
+reruns on purpose: because `run-qa` and `rerun-tests` share one session record, this
+command checks the mode recorded in it and refuses to terminate a `run-qa` session.
+
+```shell
+stop-rerun
+```
+
+| Situation | Behavior | Exit code |
+| --- | --- | --- |
+| A `rerun-tests` session is active | Stops the agent process tree, then the orchestrator, and clears the session record | `0` |
+| A `run-qa` session is active | Stops nothing; reports the active session and points at [`stop-qa`](#stop-qa-command) | `1` |
+| The record is stale | Stops nothing; reports the record as stale, discards it, and points at `stop-qa` | `0` |
+| Nothing is tracked | Reports that no rerun was found, and points at `stop-qa` for stale-lock recovery | `0` |
+
+A session whose recorded mode is missing or unrecognized is treated as `run-qa`, so
+`stop-rerun` never terminates a process tree it cannot positively identify as a rerun.
+It also does not duplicate `stop-qa`'s orphaned-lock recovery: a lock with no session
+record carries no mode information, so that recovery lives only in `stop-qa`.
+
+### Examples
+```shell
+# Stop the current rerun session, if any
+docker exec -it waterwheel-agent stop-rerun
+
+# Restart a rerun from scratch
+docker exec -it waterwheel-agent stop-rerun
+docker exec -it waterwheel-agent rerun-tests
 ```
 
 ## `upload-instruction-file` Command
