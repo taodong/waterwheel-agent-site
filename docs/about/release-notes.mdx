@@ -55,6 +55,13 @@ which turns verifying one fix from a full-suite run into a run of a single task.
     refuses to terminate a `run-qa` session; stopping that one remains
     [`stop-qa`](../reference/usage.mdx#stop-qa-command)'s job, and `stop-qa` is still the
     universal stopper and the only stale-lock recovery command.
+  - [`get-test-report`](../reference/usage.mdx#get-test-report-command) — report the full run
+    and every rerun under it as a single JSON document. The `--rerun` selector above answers
+    "how did *this* rerun go?"; this answers "what has been run at all?", which nothing else
+    in the container could tell you — each rerun is keyed by the same name `--rerun` accepts.
+    Two flags emit stripped-down projections for a code agent assembling a `rerun-config.json`:
+    `--list-tests` gives each test's name and file, and `--list-results` gives how the run and
+    each rerun ended. Its stdout is always JSON, with every diagnostic on stderr.
 
 ```shell
 docker pull taojdcn/duotail-waterwheel:1.5.0
