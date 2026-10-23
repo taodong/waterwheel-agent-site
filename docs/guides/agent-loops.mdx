@@ -71,30 +71,38 @@ instead:
 
 ```bash
 # install one skill from a specific release
-npx skills add taodong/duotail-waterwheel-skills#v2.0.0@waterwheel-run
+npx skills add taodong/duotail-waterwheel-skills#v3.0.0@waterwheel-run
 
 # pin the whole repo to a release
-npx skills add taodong/duotail-waterwheel-skills#v2.0.0 --skill '*'
+npx skills add taodong/duotail-waterwheel-skills#v3.0.0 --skill '*'
 ```
 
 `#<tag>` accepts any git tag or branch. Pin when a newer release raises the required
-agent image or otherwise changes behavior you are not ready to adopt — `v2.0.0`
-requires agent image `1.4.0`, so pin `#v1.0.0` to stay on the `1.3.0` line. Releases
-are listed on the repository's
-[tags page](https://github.com/taodong/duotail-waterwheel-skills/tags).
+agent image or otherwise changes behavior you are not ready to adopt. Each skills release
+pairs with an agent image line:
+
+| Skills release | Agent image (`imageName`) |
+|---|---|
+| `v3.0.0` | `1.5.0`+ |
+| `v2.0.0` | `1.4.0` |
+| `v1.0.0` | earlier than `1.4.0` |
+
+For example, to stay on agent image `1.4.0`, pin `#v2.0.0`. Releases are listed on the
+repository's [tags page](https://github.com/taodong/duotail-waterwheel-skills/tags).
 
 ## The skills
 
-The toolkit ships nine skills that the code agent uses to drive the inner loop:
+The toolkit ships ten skills that the code agent uses to drive the inner loop:
 
 | Skill | What it does |
 |---|---|
 | `waterwheel-run` | Runs the complete end-to-end pipeline: agent install, test loading, instruction loading, test skill loading, and the test-and-fix cycle |
 | `waterwheel-test-and-fix` | Runs the predefined web tests, reports results, identifies failure causes, and applies fixes when authorized |
+| `waterwheel-rerun-tests` | Replays a subset of tests from the last full run's checkpoints (all of them, a range, or a single test), optionally with data overrides and repeated N times. Diagnoses failures without fixing them, and after a successful rerun offers to keep its updated context. See [Diagnose Flaky Tests](./test-reruns.mdx) (requires agent image `1.5.0`+) |
 | `waterwheel-load-tests` | Reloads the markdown test tasks from the project's task folder into the container |
 | `waterwheel-load-instructions` | Reloads instruction files, configuration, permissions, and localhost testing settings |
 | `waterwheel-load-test-skills` | Reloads the project's user-defined [test skills](../getting-started/create-test-skills.mdx) from the `testSkills` folder into the container (requires agent image `1.4.0`+) |
-| `waterwheel-update-context` | Exports and merges context variables into `preset-context.json` for reuse across tests |
+| `waterwheel-update-context` | Exports context variables from the latest **full run** and merges the chosen ones into `preset-context.json` for reuse across tests. Full runs only: to keep a rerun's context, use `waterwheel-rerun-tests` |
 | `waterwheel-agent-install` | Installs the Waterwheel container with AI provider configuration |
 | `waterwheel-stop-container` | Stops the running container without removing it |
 | `waterwheel-agent-uninstall` | Removes the Waterwheel Docker container |
@@ -114,6 +122,11 @@ control to the test-and-fix loop:
    results, and — when `maxFixAttempts` is greater than zero and a `deployInstruction`
    is provided — diagnoses failures and redeploys fixes before re-running.
 
+`waterwheel-rerun-tests` sits outside the pipeline. After a full run, use it to replay
+only the tests you're interested in, starting from the context the full run had. It's
+especially useful for checking whether an occasional failure is an intermittent app bug
+or the model behaving differently. See [Diagnose Flaky Tests](./test-reruns.mdx).
+
 ## Configuration
 
 The skills work with sensible defaults but can be customized through a
@@ -123,7 +136,7 @@ omit a key to keep its default.
 | Key | Default | Purpose |
 |---|---|---|
 | `containerName` | `waterwheel-agent` | Name of the Waterwheel Docker container. Container operations use force-removal, so this must reference only the Waterwheel container. |
-| `imageName` | `taojdcn/duotail-waterwheel:1.5.0` | The Waterwheel agent Docker image to pull. The default tracks the [latest release](../about/release-notes.mdx). The minimum supported version is `1.4.0`, which adds the `load-test-skills` command `waterwheel-load-test-skills` depends on. |
+| `imageName` | `taojdcn/duotail-waterwheel:1.5.0` | The Waterwheel agent Docker image to pull. The default tracks the [latest release](../about/release-notes.mdx). Each skill states its own minimum: `waterwheel-rerun-tests` needs `1.5.0` (for `generate-rerun-config`, `rerun-tests`, and `get-test-report`), and `waterwheel-load-test-skills` needs `1.4.0` (for `load-test-skills`). |
 | `allowRebuild` | `false` | When `false`, an existing container is only started; when `true`, it is rebuilt if needed. |
 | `aiProvider` | `anthropic` | AI provider for your API key. One of `anthropic`, `openai`, `gemini`, `deepseek`, `gemma`. |
 | `aiModel` | `claude-sonnet-4-6` | Model the agent uses (must be valid for the chosen provider). |
@@ -133,7 +146,7 @@ omit a key to keep its default.
 | `taskFolder` | `tasks` | Folder containing your markdown-format test files. |
 | `testSkills` | `none` | Host folder under which each user-defined test skill lives in its own subfolder holding a `SKILL.md`. When set, `waterwheel-load-test-skills` loads every one of them into the agent; `none` loads no test skills. Requires agent image `1.4.0` or newer. |
 | `instructionFolder` | `none` | Folder whose files are copied into `/agent/instructions` in the container, or `none`. |
-| `presetContextFile` | `none` | JSON file installed as preset context, or `none`. |
+| `presetContextFile` | `none` | JSON file installed as preset context, or `none`. `waterwheel-update-context`, and `waterwheel-rerun-tests` when you choose to keep a rerun's context, also write to this path. |
 | `globalConstantsFile` | `none` | JSON file installed as global context, or `none`. |
 | `enableLocalTest` | `true` | Set `true` when the test website runs on your local machine. |
 | `allowedDomains` | `["http://localhost:8080", "http://localhost:3000", "http://localhost:5173"]` | Web domains the agent is allowed to access. |
@@ -224,8 +237,9 @@ its own isolated agent loop, without the containers stepping on one another.
 These skills operate on Docker and local files and are intended for **trusted
 development environments**.
 
-- `waterwheel-update-context` always shows you the exported values and asks which
-  keys to merge before writing.
+- `waterwheel-update-context` and `waterwheel-rerun-tests` (when keeping a rerun's
+  context) always show you the exported values and ask which keys to merge before
+  writing to your preset-context file.
 - Context values generated during runs are treated as untrusted data. Do not commit
   them to version control if they contain secrets.
 - `waterwheel-test-and-fix` can modify and redeploy your application source code when

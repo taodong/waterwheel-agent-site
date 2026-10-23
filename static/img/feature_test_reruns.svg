@@ -1,0 +1,27 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="rerungrad" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#1e6fd9"/>
+<stop offset="100%" stop-color="#3dd8e8"/>
+</linearGradient>
+</defs>
+<!-- replays fanning out from one checkpoint -->
+<path d="M 66 100 C 96 100, 96 52, 120 52" fill="none" stroke="#9fc9e8" stroke-width="3" stroke-linecap="round" stroke-dasharray="5 6"/>
+<path d="M 66 100 L 120 100" fill="none" stroke="#9fc9e8" stroke-width="3" stroke-linecap="round" stroke-dasharray="5 6"/>
+<path d="M 66 100 C 96 100, 96 148, 120 148" fill="none" stroke="#9fc9e8" stroke-width="3" stroke-linecap="round" stroke-dasharray="5 6"/>
+<!-- run direction arrowheads -->
+<path d="M 130 52 L 122 47.5 L 122 56.5 Z" fill="#1e6fd9"/>
+<path d="M 130 100 L 122 95.5 L 122 104.5 Z" fill="#1e6fd9"/>
+<path d="M 130 148 L 122 143.5 L 122 152.5 Z" fill="#1e6fd9"/>
+<!-- the checkpoint: the saved context every replay starts from -->
+<circle cx="44" cy="100" r="24" fill="url(#rerungrad)"/>
+<path d="M 37 86 L 37 115" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+<path d="M 38.5 87 L 54 92.5 L 38.5 98 Z" fill="#ffffff"/>
+<!-- replay outcomes: same start, different results -->
+<circle cx="154" cy="52" r="20" fill="#eef6fc" stroke="#1e6fd9" stroke-width="3"/>
+<path d="M 146 52 L 152 58 L 163 46" fill="none" stroke="#1e6fd9" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="154" cy="100" r="20" fill="#eef6fc" stroke="#1e6fd9" stroke-width="3"/>
+<path d="M 146 100 L 152 106 L 163 94" fill="none" stroke="#1e6fd9" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="154" cy="148" r="20" fill="#fdf0ec" stroke="#f4623a" stroke-width="3"/>
+<path d="M 147 141 L 161 155 M 161 141 L 147 155" fill="none" stroke="#f4623a" stroke-width="4" stroke-linecap="round"/>
+</svg>

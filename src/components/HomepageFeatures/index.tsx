@@ -24,7 +24,6 @@ export const FeatureList: FeatureItem[] = [
   {
     title: 'Reusable Test Skills',
     Svg: require('@site/static/img/feature_test_skills.svg').default,
-    badge: 'New in 1.4.0',
     description: (
       <>
         Describe a login flow or a tricky interaction once in a{' '}
@@ -44,6 +43,19 @@ export const FeatureList: FeatureItem[] = [
         <a href="/docs/getting-started/chain-tests-together">
           Chain Tests Together
         </a>
+      </>
+    ),
+  },
+  {
+    title: 'Rerun Flaky Tests',
+    Svg: require('@site/static/img/feature_test_reruns.svg').default,
+    badge: 'New in 1.5.0',
+    description: (
+      <>
+        AI models aren't deterministic. Replay a failing test from the exact
+        context it failed in to tell an intermittent bug from model variance,
+        then hand the evidence to AI.{' '}
+        <a href="/docs/guides/test-reruns">Diagnose Flaky Tests</a>
       </>
     ),
   },

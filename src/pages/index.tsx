@@ -182,7 +182,6 @@ function SkillsSpotlight() {
         <div className={styles.skillsPanel}>
           <div className={clsx('row', styles.skillsRow)}>
             <div className="col col--5">
-              <span className={styles.skillsBadge}>New in 1.4.0</span>
               <Heading as="h2" className={styles.sectionTitle}>
                 Teach it once, reuse it everywhere
               </Heading>
@@ -255,7 +254,7 @@ function CallToAction() {
               </p>
               <div className={styles.ctaCode}>
                 <CodeBlock language="bash">
-                  docker pull taojdcn/duotail-waterwheel:1.4.0
+                  docker pull taojdcn/duotail-waterwheel:1.5.0
                 </CodeBlock>
               </div>
               <div className={styles.buttons}>

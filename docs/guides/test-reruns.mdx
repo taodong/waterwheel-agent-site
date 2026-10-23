@@ -1,0 +1,320 @@
+---
+title: Diagnose Flaky Tests with Reruns
+sidebar_label: Diagnose Flaky Tests
+description: Use reruns to tell an intermittent application bug apart from the AI model's non-deterministic behavior, inject or update test context for a replay, and let the rerun skill do it for you.
+sidebar_position: 6
+---
+import Since from '@site/src/components/Since';
+
+# Diagnose Flaky Tests with Reruns
+<Since version="1.5.0" />
+
+A Waterwheel test is carried out by an AI model, and a model doesn't make the same choices
+every time. Given the same page and the same task, it may click a different element, read a
+label another way, or give up on a slow page one step earlier than it did last time. So a test
+that passes nine times out of ten isn't necessarily hiding a bug in your app.
+
+It might be, though. When a test fails **only sometimes**, there are two suspects:
+
+| Suspect | What is actually happening |
+| --- | --- |
+| **An intermittent application bug** | The app misbehaves under some conditions — a race, a timing window, a stale cache, a flaky backend call. The model reported a failure that really happened. |
+| **Model non-determinism** | The app behaved correctly, but the model took a different path through it — misread the task, picked the wrong control, or judged the result too strictly. |
+
+A full `run-qa` can't separate the two, because every run changes more than one thing: the
+tests before the failing one produce new data, so the failing test starts from a different
+state each time. A **rerun** keeps that state fixed. It replays just the tests you pick, each
+time from the context the failing run had, so what's left to vary is the model's behavior and
+your app's runtime behavior. Replay the failing test several times and you can tell which one
+you're dealing with. The rerun's output then gives an AI enough evidence to work out the
+actual cause.
+
+## Why a rerun holds the context constant
+
+Every full `run-qa` saves a **context checkpoint** just before each task runs, at
+`/agent/outputs/checkpoints/<task-id>.json`. A rerun restores the checkpoint of the selected
+task that ran **earliest** in that full run and runs the selected tasks from there. So a
+replayed test starts with the same accounts, IDs, and generated values the failing run gave
+it, even when they were created by tests you aren't replaying.
+
+Some details matter for diagnosis:
+
+- **Every rerun of the same test starts from the same checkpoint.** Checkpoints belong to
+  the most recent full run and are never changed by a rerun, so replaying a test ten times
+  gives ten attempts from an identical starting point.
+- **Each rerun writes to its own folder,** `/agent/outputs/rerun-<name>/`, and never
+  touches the original run's results or the other reruns. You can compare them side by side.
+- **The next `run-qa` wipes all of it:** the checkpoints and every `rerun-*` folder.
+  Finish the investigation before you start another full run.
+
+See [How the context is seeded](../reference/usage.mdx#how-the-context-is-seeded) for the
+full mechanics.
+
+:::caution[What a rerun cannot replay]
+A test that was **added after** the last full run, or that was **skipped or aborted** in it,
+has no checkpoint to restore. Run a fresh `run-qa` first.
+:::
+
+## The workflow
+
+### 1. Find the failing test
+
+After a full run, check the outcome and list the tests in the order they ran:
+
+```shell
+docker exec waterwheel-agent check-test-result
+docker exec waterwheel-agent get-test-report --list-tests
+```
+
+`--list-tests` prints each test's `name` and its task `file`. A rerun is configured with the
+`file`.
+
+### 2. Replay it several times
+
+Replay the failing test several times, giving **each attempt its own name** so every result
+lands in its own folder and can be read back without ambiguity. Five attempts is a good
+start. Use more when the original failure was rare.
+
+```shell
+for i in 1 2 3 4 5; do
+  docker exec waterwheel-agent generate-rerun-config -f checkout.md --name "checkout-$i" | \
+    docker exec -i waterwheel-agent upload-instruction-file rerun-config.json
+  docker exec waterwheel-agent rerun-tests
+done
+```
+
+[`generate-rerun-config`](../reference/usage.mdx#generate-rerun-config-command) checks the
+filename and the name before anything starts, and
+[`rerun-tests`](../reference/usage.mdx#rerun-tests-command) runs the replay. To replay a
+short sequence instead of one test, for example the step before the failure plus the failure
+itself, pass several `-f` flags in execution order.
+
+:::tip[Name every rerun]
+Without a name, a rerun gets an auto-numbered folder, and `--rerun` with no name picks the
+most recently modified one. A rerun that dies before writing results can then make an
+*older* folder look like the latest result. Naming each attempt avoids that.
+:::
+
+### 3. Tally the outcomes
+
+Print how the full run and every rerun under it ended:
+
+```shell
+docker exec waterwheel-agent get-test-report --list-results
+```
+
+Or check one attempt at a time:
+
+```shell
+docker exec waterwheel-agent check-test-result --rerun "checkout-3"
+```
+
+### 4. Read the pattern
+
+The pass/fail pattern across attempts is your first piece of evidence:
+
+| Pattern across replays | What it points to | Next step |
+| --- | --- | --- |
+| **Fails every time** | A real, reproducible failure starting from this state. Either the app is broken, or the checkpointed data is (an expired token, a consumed one-time code) | Fix the app, or [inject fresh context](#inject-or-update-test-context) and replay |
+| **Passes every time** | The original failure depended on something a replay doesn't reproduce: a one-off environment hiccup, or something left behind by earlier tests in the full run | Replay a longer sequence that includes the earlier tests |
+| **Mixed results** | Real flakiness, either from the app or from the model. Same state, different outcomes | Compare a passing and a failing attempt (step 5) |
+
+A mixed result is where reruns help most, because you have a passing attempt and a failing
+attempt that started from the same state. Whatever is different between them is the cause.
+
+### 5. Hand the evidence to an AI
+
+Each rerun folder holds the same files a full run produces: `test-results.json`,
+`test-context.json`, `agent.log`, `api-log.json`, and a step-by-step `<test-name>_log.json`.
+[`get-failure-detail`](../reference/usage.mdx#get-failure-detail-command) collects them into
+one report:
+
+```shell
+# Full diagnostic for a failing attempt, including the model's API exchanges
+docker exec waterwheel-agent get-failure-detail -d --rerun "checkout-2" > checkout-2-failure.txt
+
+# The context a passing attempt ended with, for comparison
+docker exec waterwheel-agent output-context-variables --rerun "checkout-1"
+```
+
+Give a code agent (or any capable model) the failing report, the passing attempt's step log,
+and your application logs, and ask it to compare them. For example:
+
+> Attempts `checkout-1` and `checkout-2` replayed the same test from the same checkpoint.
+> `checkout-1` passed and `checkout-2` failed. Compare their step logs and tell me whether the
+> application behaved differently (different responses, errors, or page content at the same
+> step) or whether the agent made different decisions on identical pages. Cite the steps.
+
+What the comparison usually turns up:
+
+- **The app behaved differently.** At the same step the page showed different content, an
+  API returned an error, or an element showed up late. That's an **intermittent application
+  bug**: fix the app, then confirm the fix by replaying the same number of times.
+- **The agent decided differently.** The pages matched, but the model clicked a different
+  control, misread an ambiguous step, or judged a correct result as wrong. That's **model
+  non-determinism**: tighten the task wording, spell out the expected result, or move a
+  tricky interaction into a [test skill](../getting-started/create-test-skills.mdx). Then
+  replay and check that the results are consistent. See also
+  [Best Practices](./best-practices.mdx).
+
+:::tip[Edits to tasks take effect on the next rerun]
+A rerun re-reads the task files, `global-context.json`, and `extra-instructions.md` every
+time it starts, and only the *context* comes from the checkpoint. So you can reword a test,
+upload it with
+[`upload-test-task`](../reference/usage.mdx#upload-test-task-command), and replay it right
+away from the same starting state, with no full run in between.
+:::
+
+## Inject or update test context
+
+Sometimes the checkpointed data is the problem: an account that got locked, a coupon that was
+already redeemed, a value you want to try differently. You can change the context of a rerun
+without touching the checkpoint, and you can save values for future full runs.
+
+### Override context for a rerun
+
+A rerun config's `data` object is applied **after** the checkpoint is restored, so its values
+replace the checkpointed ones and any new keys are added. Use the same bare key names your
+tests use, without a `user.` prefix.
+
+String values go on the command line (a dotted key such as `testuser.email` sets a field inside a nested object):
+
+```shell
+docker exec waterwheel-agent generate-rerun-config -f checkout.md --name "checkout-fresh-coupon" \
+  --data coupon_code=SAVE20,email=qa+rerun@example.com | \
+  docker exec -i waterwheel-agent upload-instruction-file rerun-config.json
+docker exec waterwheel-agent rerun-tests
+```
+
+Numbers, booleans, arrays, and nested objects need `--data-file`. The file path is read
+**inside the container**, so upload the file first:
+
+```shell
+printf '{"cart_quantity": 3, "feature_new_checkout": true}' | \
+  docker exec -i waterwheel-agent upload-instruction-file rerun-data.json
+
+docker exec waterwheel-agent generate-rerun-config -f checkout.md --name "checkout-qty-3" \
+  --data-file /agent/instructions/rerun-data.json | \
+  docker exec -i waterwheel-agent upload-instruction-file rerun-config.json
+```
+
+When both are given, `--data` overrides `--data-file`. You can also write `data` into
+[`rerun-config.json`](../reference/configuration-files.mdx#rerun-configjson) by hand.
+
+:::note[Repeating a test that creates something unique]
+If the test registers an account or creates a record with a unique field, sending the same
+value on every attempt fails on the second one for reasons that have nothing to do with the
+bug. Give each attempt its own value:
+
+```shell
+for i in 1 2 3 4 5; do
+  docker exec waterwheel-agent generate-rerun-config -f register.md --name "register-$i" \
+    --data "email=qa+$i@example.com" | \
+    docker exec -i waterwheel-agent upload-instruction-file rerun-config.json
+  docker exec waterwheel-agent rerun-tests
+done
+```
+:::
+
+:::caution[`preset-context.json` does not affect reruns]
+A rerun takes its starting context only from the checkpoint plus the rerun config's `data`.
+It never reads `preset-context.json`, so editing preset values changes the next full run but
+not any rerun. Use `data` overrides to change a rerun's context.
+:::
+
+### Save context for future runs
+
+A rerun always starts from the stable context of the previous full run, and it never changes
+that context. But sometimes the full run fails and a rerun of the same test succeeds. In that
+case the successful rerun may have changed the test context along the way, for example by
+registering a new account or regenerating an ID. Those values only exist in the rerun's
+folder, and the next `run-qa` deletes them. If you want to keep them, save them as preset
+values so that later full runs start with them.
+
+A rerun's exported context is its **whole** context: the restored checkpoint plus everything
+the rerun changed. Compare it with the full run's to see which values actually changed:
+
+```shell
+# The full run's context, and the successful rerun's
+docker exec waterwheel-agent output-context-variables
+docker exec waterwheel-agent output-context-variables --rerun "register-3"
+
+# Save the values you want to keep as preset values
+docker exec waterwheel-agent preset-context variables \
+  set testuser.username=test.user21,testuser.password=123456789Ab#
+```
+
+`preset-context variables set` changes the `preset-context.json` inside the container only.
+To keep the values across container reinstalls, also add them to your project's copy of the
+file. The [`waterwheel-rerun-tests` skill](#waterwheel-rerun-tests) can do both steps for you.
+
+Preserved values take effect at the **next full run**, which also writes new checkpoints that
+contain them. Reruns never read `preset-context.json`, so reruns started before then still
+use the current checkpoints. Static values that every test shares, like base URLs or tenant
+IDs, belong in
+[`global-context.json`](../reference/configuration-files.mdx#global-contextjson) instead,
+which you can manage with
+[`manage-global-constants`](../reference/usage.mdx#manage-global-constants-command).
+
+:::note[`waterwheel-update-context` is for full runs only]
+The `waterwheel-update-context` skill saves context from the latest **full run** only. To keep
+a rerun's context, use the preserve option in `waterwheel-rerun-tests`, or the commands above.
+:::
+
+## Let a code agent do it: the rerun skills
+
+You don't have to type any of the commands above. The
+[Waterwheel skills](https://github.com/taodong/duotail-waterwheel-skills) for code agents
+such as Claude Code wrap the whole workflow. See [Agent Loops](./agent-loops.mdx) for how to
+install them.
+
+```bash
+npx skills add taodong/duotail-waterwheel-skills@waterwheel-rerun-tests
+```
+
+### `waterwheel-rerun-tests`
+
+Ask in plain language and the skill turns the request into a validated rerun config, runs it,
+and reports the results:
+
+- *"Rerun the checkout test 5 times"*
+- *"Rerun tests from Login to Checkout"*
+- *"Rerun all tests"*
+- *"Rerun register with `email=qa+{n}@example.com`, 3 times"*
+
+What it does:
+
+- **Resolves test names against the last full run.** It matches what you typed against the
+  run's actual test names and execution order, and asks you instead of guessing when a name
+  is ambiguous or unknown.
+- **Names every attempt** (`checkout-1`, `checkout-2`, …) and checks for name collisions
+  before starting, so each result is read from its own folder.
+- **Handles context overrides.** It passes string values directly and uploads the rest as a
+  data file. A `{n}` in a value is replaced with the attempt number, so repeated tests that
+  create unique records don't collide.
+- **Keeps going after a failure.** Every attempt runs, because stopping at the first failure
+  would throw away the evidence you're collecting.
+- **Diagnoses, never fixes.** For each failed attempt it reads `get-failure-detail` and
+  reports a likely root cause. If attempts disagree, it **flags the mixed result as a
+  flakiness signal**: same tests, same checkpoint, different outcomes.
+- **Confirms first** before replaying all tests, repeating a test, applying overrides, or
+  using a fuzzy name match.
+- **Offers to keep a successful rerun's context.** If at least one attempt passed, it asks
+  whether to save that attempt's context. If several passed, you pick which one. It then
+  shows the rerun's values, marks the keys that are **new** or **changed** compared with the
+  full run, and lets you keep the changed keys, all of them, a subset, or none. The chosen
+  keys are merged into the `data` object of your project's `preset-context.json` (the
+  `presetContextFile` or `instructionFolder` setting). Afterwards it asks you to run
+  `waterwheel-load-instructions` so the container gets the update. Nothing is written unless
+  you choose keys, and attempts that failed are never offered.
+
+It requires agent image `1.5.0` or newer.
+
+### Related skills
+
+| Skill | Use it when |
+| --- | --- |
+| `waterwheel-test-and-fix` | The rerun showed a real application bug and you want the code agent to fix it, redeploy, and verify against the full suite |
+| `waterwheel-update-context` | After a **full run**, you want to save the context values it produced into your project's `preset-context.json`. Full runs only: for a rerun, use the preserve option in `waterwheel-rerun-tests` |
+| `waterwheel-load-instructions` | You preserved a rerun's context and need to push the updated `preset-context.json` into the container |
+| `waterwheel-load-tests` | You reworded a flaky task on the host and need to push it into the container before replaying |
