@@ -27,12 +27,14 @@ Variable | Description | Default
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `AI_PROVIDER` | AI provider name: `anthropic`, `openai`, `gemini`, `deepseek`, `gemma` | `anthropic` |
+| `AI_PROVIDER` | AI provider name: `anthropic`, `openai`, `gemini`, `deepseek`, `gemma`, `openai-compatible`. Use `openai-compatible` for any vendor that speaks the OpenAI Chat Completions wire format (e.g. OpenRouter, Groq, self-hosted vLLM). | `anthropic` |
 | `AI_MODEL` | AI model name | — |
 | `AI_API_KEY` | AI API key. For `gemma`, set to any non-empty string — Ollama does not validate it. | — |
-| `AI_BASE_URL` | Ollama server base URL. Required when `AI_PROVIDER=gemma` (e.g. `http://localhost:11434`). Ignored for all other providers. | — |
+| `AI_BASE_URL` | Base URL used by two providers, with different path semantics. For `AI_PROVIDER=gemma`, the bare Ollama host; `/v1` is appended (e.g. `http://localhost:11434`). For `AI_PROVIDER=openai-compatible`, the vendor's full base path including any version segment, used verbatim with only `/chat/completions` appended (e.g. `https://openrouter.ai/api/v1`). Required for both; ignored for all other providers. | — |
 | `AI_MAX_TOKENS` | Max tokens for a single response | `8192` |
-| `AI_TEMPERATURE` | Temperature (0.0 for strict QA/Logic, 0.7 for creative) | `0.0` |
+| `AI_TEMPERATURE` | Temperature (0.0 for strict QA/Logic, 0.7 for creative). Only sent by `openai-compatible` (and only when `AI_TEMPERATURE_ENABLED=true`); other providers validate the value but do not send it. | `0.0` |
+| `AI_TEMPERATURE_ENABLED` | Whether `AI_PROVIDER=openai-compatible` sends temperature at all; set to `false` for reasoning models that reject the field. Ignored by all other providers. | `true` |
+| `AI_EXTRA_HEADERS` | JSON object of extra HTTP headers sent with each request when `AI_PROVIDER=openai-compatible` (e.g. `{"HTTP-Referer":"https://example.com"}`). Merged over the default `Authorization`/`Content-Type` headers, so a same-named entry overrides the default. Treated as sensitive. Ignored by all other providers. | — |
 | `GLOBAL_CONTEXT` | Path to a JSON file of global variables/URLs injected into the system prompt | `/agent/instructions/global-context.json` |
 | `EXTRA_INSTRUCTION` | Path to a Markdown file whose content is appended to the system prompt; ignored if the file does not exist | `/agent/instructions/extra-instructions.md` |
 | `PRESET_CONTEXT` | Path to a JSON file of preset context values seeded into the context store before any task runs; ignored if the file does not exist | `/agent/instructions/preset-context.json` |
