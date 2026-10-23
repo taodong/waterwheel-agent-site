@@ -28,6 +28,7 @@ The container provides the following commands to help you run web tests.
 | [`display-ai-config`](#display-ai-config-command)          | Show the effective AI provider, model, and token mode |
 | [`display-test-skills`](#display-test-skills-command)        | List installed skills or print a skill's `SKILL.md` |
 | [`enable-test-on-host`](#enable-test-on-host-command)        | Enable testing against a web app on the host machine |
+| [`generate-rerun-config`](#generate-rerun-config-command)    | Compose a `rerun-config.json` document on stdout |
 | [`get-failure-detail`](#get-failure-detail-command)       | Get failure details         |
 | [`get-test-report`](#get-test-report-command)          | Report the full run and every rerun under it as one JSON document |
 | [`load-test-skills`](#load-test-skills-command)          | Load a skill into the agent as a `SKILL.md` |
@@ -396,6 +397,125 @@ enable-test-on-host
 ### Example
 ```shell
 docker exec -it waterwheel-agent enable-test-on-host
+```
+
+## `generate-rerun-config` Command
+<Since version="1.5.0" />
+
+Composes a [`rerun-config.json`](./configuration-files.mdx#rerun-configjson) document and prints
+it to stdout. It writes nothing to disk — pipe it to
+[`upload-instruction-file`](#upload-instruction-file-command) to install it. It is the write-side
+counterpart to [`get-test-report --list-tests`](#get-test-report-command), which lists the task
+filenames a `flow` can hold.
+
+```shell
+generate-rerun-config [-ap <agent-path>] -f <task-file> [-f <task-file> ...]
+                      [--name <rerun-name>] [--data KEY=value,...] [--data-file <path>]
+```
+
+**stdout is always JSON and nothing else.** Every diagnostic — errors, the duplicate-file
+warning, the existing-folder warning, and the resolved-folder notice — goes to stderr, so no
+diagnostic can corrupt a piped document.
+
+### Options
+| Option | Description |
+| --- | --- |
+| `-f`, `--file <name>` | Task file to replay. Repeatable; **the order given is the execution order**. At least one is required |
+| `--name <rerun-name>` | Name the rerun, and with it its output folder. Omitted from the document when not given |
+| `--data KEY=value,...` | Context overrides merged into `data`. Repeatable. Dotted keys nest: `user.name=Ada` → `{"user":{"name":"Ada"}}` |
+| `--data-file <path>` | A JSON file whose top-level object is merged into `data`. Repeatable. Use it for values that are not strings |
+| `-ap <path>` | Override the agent path (default: `/agent`) |
+| `-h`, `--help`, `h`, `help` | Show usage help |
+
+An unrecognized option is rejected with exit `1` rather than ignored, and a value-taking flag
+rejects a following flag (`-f --name x`) instead of swallowing it as its value.
+
+`name` and `data` are **omitted rather than emitted empty**. Both are optional to the agent, and
+`"data": {}` would misrepresent a config that overrides nothing.
+
+:::caution[A pipe does not stop on failure — the upload does]
+On a validation error this command exits non-zero with *empty* stdout, but a pipeline reports its
+**last** command's exit status. `upload-instruction-file` therefore rejects empty stdin and leaves
+any existing file untouched, so a failed generation cannot blank a working config. The pipeline
+still reports the upload's status, so capture the document first when you want the generator's
+own — see the last example below.
+:::
+
+### Validation
+
+Every task filename is checked against `/agent/tasks` before anything is emitted. That is the
+point of the command: [`rerun-tests`](#rerun-tests-command) only pre-flights whether the config
+file *exists*, so an unknown `file`, an illegal `name`, or an occupied output folder otherwise
+surfaces from the agent **after** the virtual display and both MCP services have started.
+
+| Condition | stdout | Exit |
+| --- | --- | --- |
+| No `-f` given | — (`flow` may not be empty) | `1` |
+| A `-f` value is not a file in `/agent/tasks` | — (the error names it and lists the available files) | `1` |
+| A `-f` value contains `/` | — (flow entries are matched by basename) | `1` |
+| `--name` is blank, or normalizes to empty or to a plain number | — (mirrors the agent's own two rules) | `1` |
+| `--data-file` is missing, unparseable, or is not exactly one JSON object | — | `1` |
+| A `-f` value is repeated | the document, with the repeat kept | `0` (warning on stderr) |
+| `outputs/rerun-<normalized>/` already exists | the document | `0` (warning on stderr) |
+| Otherwise | `{"name"?: …, "flow": [ … ], "data"?: { … }}` | `0` |
+
+A repeated `-f` is kept because replaying one task twice in a flow is legal; it warns because a
+repeat is more often a typo. An existing rerun folder is fatal to `rerun-tests` but only a warning
+here — you may be about to remove it, and this command's exit status does not depend on output
+state it does not own.
+
+**`--name` is normalized by the agent** to form the folder name: lower-cased, whitespace runs
+collapsed to `_`, and every other character stripped. `--name "Login Flow"` writes
+`"name": "Login Flow"` — the raw value, verbatim — but produces `/agent/outputs/rerun-login_flow/`.
+Because that is lossy, the resolved folder is reported on stderr. A name that normalizes to nothing
+(`"!!!"`) or to a plain number (`"12"`, which would collide in form with the auto-numbered
+`rerun-N` scheme) is rejected here rather than by the agent. A name beginning with `-` cannot be
+passed at all, since every value-taking flag rejects a `-`-prefixed value; write such a config by
+hand if you need one. See [Reading rerun results](#reading-rerun-results) for how the two forms are
+used afterwards.
+
+### `data` precedence
+
+Sources are applied in this order, so the command line wins over a file: every `--data-file` first,
+in the order given, then every `--data`. Repeating either flag accumulates, with later occurrences
+overriding earlier ones.
+
+`--data` values are always strings. Use `--data-file` for numbers, booleans, arrays, or nested
+objects — `data` values are unvalidated by the agent, so any JSON is legal. Key parsing matches
+[`preset-context variables set`](#preset-context-command) exactly: case-sensitive,
+comma-delimited, values optionally double-quoted, dotted keys consolidated into nested objects.
+
+:::note[`--data-file` paths are container paths]
+The file is read inside the container, not on your host. Push it in first — for example with
+`upload-instruction-file overrides.json` — and then point at
+`/agent/instructions/overrides.json`.
+:::
+
+### Examples
+
+The generator writes to stdout, so run it **without** `-t`; the upload reads stdin, so it takes
+`-i` only:
+
+```shell
+# Preview a minimal config without installing it
+docker exec waterwheel-agent generate-rerun-config -f test-2.md
+
+# Which task filenames are available for a flow
+docker exec waterwheel-agent get-test-report --list-tests | jq -r '.[].file'
+
+# Named rerun, two tasks in order, with a context override
+docker exec waterwheel-agent generate-rerun-config -f test-2.md -f test-5.md \
+  --name "login flow" --data user_email=qa+rerun@example.com
+
+# Generate and install in one pipeline, then replay
+docker exec waterwheel-agent generate-rerun-config -f test-2.md -f test-5.md --name "login flow" | \
+  docker exec -i waterwheel-agent upload-instruction-file rerun-config.json
+docker exec -it waterwheel-agent rerun-tests
+
+# Capture first when you want the generator's own exit status
+cfg=$(docker exec waterwheel-agent generate-rerun-config -f test-2.md --name nightly) \
+  && printf '%s\n' "$cfg" | \
+  docker exec -i waterwheel-agent upload-instruction-file rerun-config.json
 ```
 
 ## `get-failure-detail` Command
@@ -843,8 +963,8 @@ docker exec -it waterwheel-agent preset-context flow /agent/instructions/preset-
 <Since version="1.5.0" />
 
 `rerun-tests` replays a chosen subset of tasks instead of the whole suite. It starts the
-same services as [`run-qa`](#run-qa-command), then seeds each replayed task with the
-context checkpoint captured for it during the most recent full run. That is what makes a
+same services as [`run-qa`](#run-qa-command), then restores the context captured during
+the most recent full run and runs the selected tasks against it. That is what makes a
 partial run possible: a task that depends on an account registered earlier in the suite
 can be replayed on its own, without re-running the tests that produced the account.
 
@@ -856,9 +976,10 @@ It takes no options.
 
 ### Prerequisites
 
-1. **A completed `run-qa` run.** Every full run writes a per-task context checkpoint to
-   `/agent/outputs/checkpoints/<taskId>.json`. Those checkpoints are what a rerun seeds
-   from, so a rerun is only meaningful after a full run has produced them.
+1. **A completed `run-qa` run.** Every full run writes a context checkpoint to
+   `/agent/outputs/checkpoints/<taskId>.json` immediately before each task executes, and
+   its `test-results.json` records the order the tasks actually ran in. A rerun reads
+   both, so it is only meaningful after a full run has produced them.
 2. **A rerun config file** at
    [`rerun-config.json`](./configuration-files.mdx#rerun-configjson) naming the task files
    to replay, in execution order. `rerun-tests` exits `1` before starting any service if
@@ -868,6 +989,16 @@ Upload the config with [`upload-instruction-file`](#upload-instruction-file-comm
 
 ```shell
 printf '{"name":"login flow","flow":[{"file":"test-2.md"},{"file":"test-5.md"}]}' | \
+  docker exec -i waterwheel-agent upload-instruction-file rerun-config.json
+```
+
+Or let [`generate-rerun-config`](#generate-rerun-config-command) compose the document for you. It
+checks every task filename against `/agent/tasks` and applies the agent's own `name` rules before
+emitting anything, so a mistake fails there rather than after `rerun-tests` has started the display
+and the MCP services:
+
+```shell
+docker exec waterwheel-agent generate-rerun-config -f test-2.md -f test-5.md --name "login flow" | \
   docker exec -i waterwheel-agent upload-instruction-file rerun-config.json
 ```
 
@@ -881,6 +1012,37 @@ The config location comes from the
 [`RERUN_CONFIG_PATH`](./env-vars-reference.md) agent parameter: the process environment
 first, then the default in `/agent/config/agent-config.json`, and finally
 `./instructions/rerun-config.json`. Relative paths resolve against `/agent`.
+
+### How the context is seeded
+
+A rerun restores context **once, from a single checkpoint** — not once per task. The seed is
+the checkpoint of whichever selected task ran **earliest in the original full run**, which is
+read from that run's `test-results.json`, *not* from the order of your `flow` array. Your
+`flow` order controls only this rerun's execution order; it never changes which checkpoint
+seeds it.
+
+From there the rerun behaves like a normal run: the tasks execute in `flow` order, each one
+continuing from the context the previous one left behind. So a two-task rerun starts the
+first task from the seed state and the second from whatever the first produced — it does not
+re-seed in between.
+
+Three consequences worth knowing:
+
+- **A checkpoint is the state *before* its task ran**, so seeding from task A's checkpoint
+  replays A from the same starting point the full run gave it.
+- **Only `user.*` context values are checkpointed** (ephemeral ones included). Run-scoped
+  values are not, and are re-established by the rerun itself.
+- **`data` overrides are applied after the restore**, so a value in
+  [`rerun-config.json`](./configuration-files.mdx#rerun-configjson) always wins over the
+  checkpointed one.
+
+:::caution[Two tasks a rerun cannot replay]
+A task that is **absent from the last full run's `test-results.json`** — one added since that
+run — aborts the rerun: there is no way to know where it would have fallen in the order. And a
+task that was **skipped or aborted** in that run never executed, so it has no checkpoint file;
+if it is the earliest selected task, the rerun fails when the restore cannot find it. In both
+cases the fix is a fresh `run-qa`.
+:::
 
 ### Output handling
 
@@ -1221,13 +1383,14 @@ docker exec -it waterwheel-agent rerun-tests
 `upload-instruction-file` creates or replaces an instruction or config file (for example `allowed-domains.yaml`, `email-permissions.yaml`, or `extra-instructions.md`) using content read from stdin. This lets you push instruction files into the agent without editing files in place.
 
 ```shell
-upload-instruction-file <filename>
+upload-instruction-file [--allow-empty] <filename>
 ```
 
 ### Behavior
 - Content is read from stdin and written to the named instruction file.
-- Missing parent directories are created automatically.
+- Missing parent directories are created automatically, and are removed again if the upload is rejected.
 - An existing file is replaced, and a warning is printed when it is.
+- **Empty stdin is rejected** and any existing file is left untouched, so a producing command that failed earlier in a pipe cannot silently blank a working file. Pass `--allow-empty` to write a zero-byte file deliberately.
 
 ### Examples
 

@@ -143,10 +143,13 @@ starting any service if it is missing.
 | `name` | no | Names the output folder — results land in `/agent/outputs/rerun-<name>/`. Without it the folder is auto-numbered `rerun-N` |
 | `data` | no | Context values that override the ones restored from the checkpoint |
 
-A rerun runs the listed files in the order given and seeds each one from the context
-checkpoint captured for it during the most recent full run, so the `node` and `required`
-dependency fields of `preset-context.json` above have no counterpart
-here — dependency checking is bypassed for a rerun.
+A rerun runs the listed files in the order given, against context restored from a single
+checkpoint captured during the most recent full run — the checkpoint of whichever listed task
+ran earliest in that run, which `flow` order does not influence. See
+[How the context is seeded](./usage.mdx#how-the-context-is-seeded). Because the seed already
+carries the state those earlier tasks produced, the `node` and `required` dependency fields of
+`preset-context.json` above have no counterpart here — dependency checking is bypassed for a
+rerun.
 
 You can edit this file directly, or push it into the container with
 [`upload-instruction-file`](./usage.mdx#upload-instruction-file-command):
@@ -155,6 +158,21 @@ You can edit this file directly, or push it into the container with
 printf '{"name":"login flow","flow":[{"file":"login.md"}]}' | \
   docker exec -i waterwheel-agent upload-instruction-file rerun-config.json
 ```
+
+Rather than writing the JSON yourself, you can have
+[`generate-rerun-config`](./usage.mdx#generate-rerun-config-command) compose it. It checks every
+`flow` filename against `/agent/tasks` and applies the agent's own `name` rules before emitting
+anything, so a typo is caught here rather than after `rerun-tests` has started the virtual display
+and both MCP services:
+
+```shell
+docker exec waterwheel-agent generate-rerun-config -f login.md -f checkout.md \
+  --name "login flow" --data admin_password=s3cret | \
+  docker exec -i waterwheel-agent upload-instruction-file rerun-config.json
+```
+
+`--data` values are always strings; use `--data-file` for numbers, booleans, arrays, or nested
+objects.
 
 Its location is configurable with
 [`RERUN_CONFIG_PATH`](./env-vars-reference.md). See

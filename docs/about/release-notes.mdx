@@ -25,12 +25,16 @@ whole suite, each one seeded from the context it had during the last full run. A
 depends on an account registered earlier in the suite can now be replayed on its own,
 which turns verifying one fix from a full-suite run into a run of a single task.
 
-- **Context checkpoints** — every `run-qa` run writes a per-task checkpoint to
-  `/agent/outputs/checkpoints/<task-id>.json`. A rerun seeds each replayed task from the
-  checkpoint captured for it, so the task starts from the state the full run had reached.
-  The next full run clears them, so checkpoints always belong to the most recent run.
+- **Context checkpoints** — every `run-qa` run writes a checkpoint to
+  `/agent/outputs/checkpoints/<task-id>.json` immediately before each task runs. A rerun
+  restores one of them — the checkpoint of whichever replayed task ran earliest in that full
+  run — and executes its tasks against it, so a replayed task starts from the state the full
+  run had reached by that point. The next full run clears them, so checkpoints always belong
+  to the most recent run.
 - **`rerun-config.json`** — a new instruction file naming the tasks to replay (`flow`),
-  with an optional output folder `name` and optional `data` overrides. See
+  with an optional output folder `name` and optional `data` overrides. Write it by hand or
+  have [`generate-rerun-config`](../reference/usage.mdx#generate-rerun-config-command)
+  compose it. See
   [Configuration Files](../reference/configuration-files.mdx#rerun-configjson); its
   location is configurable with
   [`RERUN_CONFIG_PATH`](../reference/env-vars-reference.md).
@@ -62,6 +66,15 @@ which turns verifying one fix from a full-suite run into a run of a single task.
     Two flags emit stripped-down projections for a code agent assembling a `rerun-config.json`:
     `--list-tests` gives each test's name and file, and `--list-results` gives how the run and
     each rerun ended. Its stdout is always JSON, with every diagnostic on stderr.
+  - [`generate-rerun-config`](../reference/usage.mdx#generate-rerun-config-command) — compose a
+    `rerun-config.json` document on stdout and pipe it to
+    [`upload-instruction-file`](../reference/usage.mdx#upload-instruction-file-command); it writes
+    nothing to disk itself. It is the write-side counterpart to `get-test-report --list-tests`:
+    every task filename is checked against `/agent/tasks` and the `--name` rules are the agent's
+    own, so an unknown file, an illegal name, or an occupied output folder is caught *before*
+    `rerun-tests` starts the virtual display and both MCP services. `upload-instruction-file` now
+    also rejects empty stdin, so a generation that fails mid-pipeline cannot blank a working
+    config.
 
 ```shell
 docker pull taojdcn/duotail-waterwheel:1.5.0
